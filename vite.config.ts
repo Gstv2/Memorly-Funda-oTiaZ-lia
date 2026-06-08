@@ -1,3 +1,7 @@
+/**
+ * Configuração do Vite: servidor de desenvolvimento, plugins do React e aliases de caminhos.
+ * Fundação Tia Zélia
+ */
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";

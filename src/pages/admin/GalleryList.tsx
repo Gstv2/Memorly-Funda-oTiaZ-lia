@@ -6,6 +6,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { Plus, Edit, Trash2, Loader2 } from 'lucide-react';
+import { deleteFileFromStorage } from '@/lib/storage-utils';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -56,7 +57,11 @@ const GalleryList = () => {
     fetchImages();
   }, []);
 
-  const handleDelete = async (id: string) => {
+  const handleDelete = async (id: string, imageUrl: string) => {
+    // Primeiro deletar o arquivo do storage
+    await deleteFileFromStorage(imageUrl);
+
+    // Depois deletar o registro do banco
     const { error } = await supabase.from('gallery_images').delete().eq('id', id);
 
     if (error) {
@@ -143,7 +148,7 @@ const GalleryList = () => {
                         </AlertDialogHeader>
                         <AlertDialogFooter>
                           <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                          <AlertDialogAction onClick={() => handleDelete(image.id)}>
+                          <AlertDialogAction onClick={() => handleDelete(image.id, image.image_url)}>
                             Excluir
                           </AlertDialogAction>
                         </AlertDialogFooter>

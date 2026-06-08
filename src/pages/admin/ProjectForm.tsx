@@ -16,6 +16,7 @@ import {
 } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { ArrowLeft, Loader2, Upload, X, Plus } from 'lucide-react';
+import { deleteFileFromStorage } from '@/lib/storage-utils';
 
 const categories = [
   { value: 'social', label: 'Social' },
@@ -169,7 +170,11 @@ const ProjectForm = () => {
     setUploadingGallery(false);
   };
 
-  const removeGalleryImage = (index: number) => {
+  const removeGalleryImage = async (index: number) => {
+    const imageUrl = galleryImages[index];
+    if (imageUrl) {
+      await deleteFileFromStorage(imageUrl);
+    }
     setGalleryImages(galleryImages.filter((_, i) => i !== index));
   };
 

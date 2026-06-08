@@ -6,6 +6,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { Plus, Edit, Trash2, Loader2, User } from 'lucide-react';
+import { deleteFileFromStorage } from '@/lib/storage-utils';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -56,7 +57,12 @@ const VolunteersList = () => {
     fetchVolunteers();
   }, []);
 
-  const handleDelete = async (id: string) => {
+  const handleDelete = async (id: string, photoUrl: string | null) => {
+    // Deletar foto do voluntário se existir
+    if (photoUrl) {
+      await deleteFileFromStorage(photoUrl);
+    }
+
     const { error } = await supabase.from('volunteers').delete().eq('id', id);
 
     if (error) {
@@ -151,7 +157,7 @@ const VolunteersList = () => {
                       </AlertDialogHeader>
                       <AlertDialogFooter>
                         <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                        <AlertDialogAction onClick={() => handleDelete(volunteer.id)}>
+                        <AlertDialogAction onClick={() => handleDelete(volunteer.id, volunteer.photo_url)}>
                           Excluir
                         </AlertDialogAction>
                       </AlertDialogFooter>

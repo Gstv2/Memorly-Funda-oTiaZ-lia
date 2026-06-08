@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Menu, X, LogIn, LogOut, Settings } from "lucide-react";
+import { Menu, X, LogIn, LogOut, Settings, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
@@ -71,6 +71,16 @@ const Navbar = () => {
               </Link>
             ) : (
               <div className="flex items-center gap-2 ml-2">
+                <Link to="/perfil">
+                  <Button 
+                    variant="ghost" 
+                    size="sm"
+                    className={isActive('/perfil') ? "text-primary bg-primary/5" : ""}
+                  >
+                    <User className="w-4 h-4 mr-2" />
+                    Meu Perfil
+                  </Button>
+                </Link>
                 {isAdmin && (
                   <Link to="/admin">
                     <Button variant="outline" size="sm">
@@ -130,6 +140,15 @@ const Navbar = () => {
                 </Link>
               ) : (
                 <>
+                  <Link to="/perfil" onClick={() => setIsOpen(false)}>
+                    <Button 
+                      variant="ghost" 
+                      className={`w-full justify-start ${isActive('/perfil') ? "text-primary bg-primary/5" : ""}`}
+                    >
+                      <User className="w-4 h-4 mr-2" />
+                      Meu Perfil
+                    </Button>
+                  </Link>
                   {isAdmin && (
                     <Link to="/admin" onClick={() => setIsOpen(false)}>
                       <Button variant="outline" className="w-full justify-start">

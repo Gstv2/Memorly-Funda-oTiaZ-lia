@@ -2,24 +2,35 @@ import { useState, useEffect, createContext, useContext, ReactNode } from 'react
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 
+/**
+ * Interface que define os dados e funções disponíveis no contexto de autenticação.
+ */
 interface AuthContextType {
-  user: User | null;
-  session: Session | null;
-  isAdmin: boolean;
-  loading: boolean;
-  signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
-  signUp: (email: string, password: string, fullName: string) => Promise<{ error: Error | null }>;
-  signOut: () => Promise<void>;
+  user: User | null;         // Usuário logado
+  session: Session | null;   // Sessão ativa do Supabase
+  isAdmin: boolean;          // Flag que indica se o usuário possui cargo de Admin
+  loading: boolean;          // Estado de carregamento inicial do auth
+  signIn: (email: string, password: string) => Promise<{ error: Error | null }>; // Login
+  signUp: (email: string, password: string, fullName: string) => Promise<{ error: Error | null }>; // Cadastro
+  signOut: () => Promise<void>; // Logout
 }
 
+// Criação do contexto com valor inicial indefinido
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+/**
+ * Provedor de Autenticação (Wrapper principal do App)
+ * Gerencia o estado global de login e permissões.
+ */
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
 
+  /**
+   * Consulta a tabela 'user_roles' para verificar se o usuário é administrador.
+   */
   const checkAdminRole = async (userId: string) => {
     const { data, error } = await supabase
       .from('user_roles')
@@ -29,19 +40,20 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       .maybeSingle();
 
     if (error) {
-      console.error('Error checking admin role:', error);
+      console.error('Erro ao verificar cargo de admin:', error);
       return false;
     }
     return !!data;
   };
 
   useEffect(() => {
-    // Set up auth state listener FIRST
+    // 1. Escuta mudanças no estado de autenticação (Login, Logout, Refresh Token)
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
         setSession(session);
         setUser(session?.user ?? null);
 
+        // Se houver um usuário, verifica imediatamente se ele é admin
         if (session?.user) {
           setTimeout(() => {
             checkAdminRole(session.user.id).then(setIsAdmin);
@@ -52,7 +64,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }
     );
 
-    // THEN check for existing session
+    // 2. Busca a sessão existente ao carregar a página pela primeira vez
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
@@ -63,9 +75,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setLoading(false);
     });
 
+    // Remove o listener ao destruir o componente
     return () => subscription.unsubscribe();
   }, []);
 
+  /**
+   * Função de Login
+   */
   const signIn = async (email: string, password: string) => {
     const { error } = await supabase.auth.signInWithPassword({
       email,
@@ -74,6 +90,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return { error };
   };
 
+  /**
+   * Função de Cadastro (inclui o nome completo no cadastro do Supabase)
+   */
   const signUp = async (email: string, password: string, fullName: string) => {
     const redirectUrl = `${window.location.origin}/`;
 
@@ -90,6 +109,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return { error };
   };
 
+  /**
+   * Função de Logout
+   */
   const signOut = async () => {
     await supabase.auth.signOut();
     setIsAdmin(false);
@@ -102,10 +124,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   );
 };
 
+/**
+ * Hook customizado para acessar facilmente o contexto de autenticação em qualquer componente.
+ */
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
+    throw new Error('useAuth deve ser usado dentro de um AuthProvider');
   }
   return context;
 };

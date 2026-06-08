@@ -2,8 +2,11 @@ import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import ProjectCard from "@/components/ProjectCard";
-import { Loader2 } from "lucide-react";
+import { Loader2, Search } from "lucide-react";
 import { Link } from "react-router-dom";
+import SEO from "@/components/SEO";
+import { Input } from "@/components/ui/input";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface Project {
   id: string;
@@ -21,11 +24,24 @@ type CategoryFilter = "todos" | "social" | "cultural" | "esportivo" | "educacion
 const Projetos = () => {
   const [activeFilter, setActiveFilter] = useState<CategoryFilter>("todos");
   const [projects, setProjects] = useState<Project[]>([]);
+  const [filteredProjects, setFilteredProjects] = useState<Project[]>([]);
+  const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     fetchProjects();
   }, []);
+
+  useEffect(() => {
+    const query = searchQuery.toLowerCase();
+    const filtered = projects.filter(project => {
+      const matchesSearch = project.title.toLowerCase().includes(query) || 
+                          project.description.toLowerCase().includes(query);
+      const matchesCategory = activeFilter === "todos" || project.category === activeFilter;
+      return matchesSearch && matchesCategory;
+    });
+    setFilteredProjects(filtered);
+  }, [searchQuery, activeFilter, projects]);
 
   const fetchProjects = async () => {
     const { data, error } = await supabase
@@ -36,13 +52,10 @@ const Projetos = () => {
 
     if (!error && data) {
       setProjects(data);
+      setFilteredProjects(data);
     }
     setLoading(false);
   };
-
-  const filteredProjects = activeFilter === "todos" 
-    ? projects 
-    : projects.filter(p => p.category === activeFilter);
 
   const filters: { label: string; value: CategoryFilter }[] = [
     { label: "Todos", value: "todos" },
@@ -54,6 +67,10 @@ const Projetos = () => {
 
   return (
     <div className="min-h-screen">
+      <SEO 
+        title="Projetos" 
+        description="Conheça os projetos sociais, culturais e educativos da Fundação Tia Zélia."
+      />
       {/* Header */}
       <section className="py-20 bg-gradient-subtle">
         <div className="container mx-auto px-4">
@@ -69,9 +86,9 @@ const Projetos = () => {
         </div>
       </section>
 
-      {/* Filters */}
+      {/* Filters & Search */}
       <section className="py-12 bg-background border-b border-border">
-        <div className="container mx-auto px-4">
+        <div className="container mx-auto px-4 space-y-8">
           <div className="flex flex-wrap justify-center gap-3">
             {filters.map((filter) => (
               <Button
@@ -89,6 +106,17 @@ const Projetos = () => {
               </Button>
             ))}
           </div>
+
+          <div className="max-w-md mx-auto relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground h-4 w-4" />
+            <Input
+              type="text"
+              placeholder="Buscar projetos..."
+              className="pl-10"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </div>
         </div>
       </section>
 
@@ -96,33 +124,32 @@ const Projetos = () => {
       <section className="py-20">
         <div className="container mx-auto px-4">
           {loading ? (
-            <div className="flex justify-center py-12">
-              <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {[1, 2, 3, 4, 5, 6].map((i) => (
+                <div key={i} className="space-y-4">
+                  <Skeleton className="h-48 w-full rounded-xl" />
+                  <Skeleton className="h-6 w-3/4" />
+                  <Skeleton className="h-20 w-full" />
+                </div>
+              ))}
             </div>
           ) : filteredProjects.length === 0 ? (
-            <div className="text-center py-20">
+            <div className="text-center py-12">
               <p className="text-xl text-muted-foreground">
-                {projects.length === 0 
-                  ? "Nenhum projeto cadastrado ainda." 
-                  : "Nenhum projeto encontrado nesta categoria."}
+                Nenhum projeto encontrado para esta busca ou categoria.
               </p>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {filteredProjects.map((project, index) => (
-                <div 
+              {filteredProjects.map((project) => (
+                <ProjectCard 
                   key={project.id} 
-                  className="animate-fade-in"
-                  style={{ animationDelay: `${(index % 9) * 100}ms` }}
-                >
-                  <ProjectCard 
-                    title={project.title}
-                    description={project.description}
-                    image={project.cover_image || ''}
-                    category={project.category as "social" | "cultural" | "esportivo" || "social"}
-                    slug={project.slug}
-                  />
-                </div>
+                  title={project.title}
+                  description={project.description}
+                  image={project.cover_image || ""}
+                  category={(project.category || "social") as "social"}
+                  slug={project.slug}
+                />
               ))}
             </div>
           )}

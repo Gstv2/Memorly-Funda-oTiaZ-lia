@@ -8,6 +8,7 @@ import BlogCard from "@/components/BlogCard";
 import heroImage from "@/assets/hero-community.jpg";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import SEO from "@/components/SEO";
 
 const Home = () => {
   const { data: projects, isLoading: loadingProjects } = useQuery({
@@ -53,6 +54,10 @@ const Home = () => {
 
   return (
     <div className="min-h-screen">
+      <SEO 
+        title="Home" 
+        description="Memorial digital da Fundação Tia Zélia - Transformando vidas através da cultura, esporte e educação em Piripiri, Piauí."
+      />
       {/* Hero Section */}
       <section className="relative h-[600px] flex items-center justify-center overflow-hidden">
         <div className="absolute inset-0 z-0">

@@ -23,6 +23,10 @@ import {
   UserCheck
 } from "lucide-react";
 import { toast } from "sonner";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
+import SEO from "@/components/SEO";
+import BlogCard from "@/components/BlogCard";
 
 interface StructuredContent {
   introduction?: string;
@@ -80,13 +84,17 @@ const BlogDetalhe = () => {
   const { slug } = useParams<{ slug: string }>();
   const [post, setPost] = useState<BlogPost | null>(null);
   const [author, setAuthor] = useState<Author | null>(null);
+  const [relatedPosts, setRelatedPosts] = useState<BlogPost[]>([]);
   const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState(false);
   const [isShareVisible, setIsShareVisible] = useState(true);
 
   useEffect(() => {
     const fetchPost = async () => {
-      if (!slug) return;
+      if (!slug || slug === "undefined") {
+        setLoading(false);
+        return;
+      }
       
       const { data, error } = await supabase
         .from('blog_posts')
@@ -113,6 +121,19 @@ const BlogDetalhe = () => {
           if (authorData) {
             setAuthor(authorData);
           }
+        }
+
+        // Fetch related posts (latest 3 excluding current)
+        const { data: relatedData } = await supabase
+          .from('blog_posts')
+          .select('*')
+          .eq('published', true)
+          .neq('id', data.id)
+          .order('published_at', { ascending: false })
+          .limit(3);
+        
+        if (relatedData) {
+          setRelatedPosts(relatedData as unknown as BlogPost[]);
         }
       }
       setLoading(false);
@@ -307,7 +328,13 @@ const BlogDetalhe = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Floating Share Buttons */}
+      <SEO 
+        title={post.title}
+        description={post.excerpt || post.structured_content?.introduction || "Leia mais sobre este post da Fundação Tia Zélia."}
+        image={post.cover_image || undefined}
+        type="article"
+      />
+      {/* Floating Share Bar */}
       <div 
         className={`fixed right-4 top-1/2 -translate-y-1/2 z-50 flex flex-col gap-2 transition-all duration-300 ${
           isShareVisible ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-10 pointer-events-none'
@@ -580,6 +607,31 @@ const BlogDetalhe = () => {
           </div>
         </div>
       </section>
+
+      {/* Related Posts */}
+      {relatedPosts.length > 0 && (
+        <section className="py-20 bg-gradient-subtle">
+          <div className="container mx-auto px-4">
+            <div className="max-w-5xl mx-auto">
+              <h2 className="font-poppins font-bold text-3xl text-foreground mb-12 text-center">
+                Veja também
+              </h2>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                {relatedPosts.map((relatedPost) => (
+                  <BlogCard
+                    key={relatedPost.id}
+                    title={relatedPost.title}
+                    excerpt={relatedPost.excerpt || ""}
+                    date={formatDate(relatedPost.published_at)}
+                    image={relatedPost.cover_image || ""}
+                    slug={relatedPost.slug}
+                  />
+                ))}
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
     </div>
   );
 };

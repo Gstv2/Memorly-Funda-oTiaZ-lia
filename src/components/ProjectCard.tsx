@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { FolderOpen } from "lucide-react";
+import { getOptimizedImageUrl } from "@/lib/storage-utils";
 
 interface ProjectCardProps {
   title: string;
@@ -32,7 +33,7 @@ const ProjectCard = ({ title, description, image, category, slug }: ProjectCardP
         <div className="relative overflow-hidden h-48">
           {image ? (
             <img
-              src={image}
+              src={getOptimizedImageUrl(image, { width: 500, height: 350 })}
               alt={title}
               className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
             />

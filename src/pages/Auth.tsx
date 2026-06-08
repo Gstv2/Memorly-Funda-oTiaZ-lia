@@ -27,12 +27,15 @@ const Auth = () => {
 
   useEffect(() => {
     if (user && !loading) {
-      // Admins vão para o painel, usuários comuns vão para a home
-      if (isAdmin) {
-        navigate('/admin');
-      } else {
-        navigate('/');
-      }
+      // Pequeno delay para garantir que isAdmin foi atualizado pelo hook useAuth
+      const timeout = setTimeout(() => {
+        if (isAdmin) {
+          navigate('/admin');
+        } else {
+          navigate('/');
+        }
+      }, 100);
+      return () => clearTimeout(timeout);
     }
   }, [user, isAdmin, loading, navigate]);
 
@@ -88,7 +91,13 @@ const Auth = () => {
         title: 'Bem-vindo!',
         description: 'Login realizado com sucesso',
       });
-      // O redirecionamento será feito pelo useEffect com base no isAdmin
+      
+      // Forçar redirecionamento imediato após toast para evitar ficar preso na tela
+      if (isAdmin) {
+        navigate('/admin');
+      } else {
+        navigate('/');
+      }
     }
   };
 
@@ -115,9 +124,14 @@ const Auth = () => {
     } else {
       toast({
         title: 'Conta criada!',
-        description: 'Sua conta foi criada com sucesso',
+        description: 'Sua conta foi criada com sucesso. Você será redirecionado.',
       });
-      // O redirecionamento será feito pelo useEffect com base no isAdmin
+      
+      // Após o cadastro, o usuário é logado automaticamente
+      // Vamos forçar o redirecionamento para a home, já que ele nasce como user comum
+      setTimeout(() => {
+        navigate('/');
+      }, 1500);
     }
   };
 

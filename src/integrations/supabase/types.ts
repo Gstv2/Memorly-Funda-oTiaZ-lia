@@ -1,3 +1,11 @@
+/**
+ * TIPAGEM DO BANCO DE DADOS - SUPABASE
+ * Este arquivo define os tipos TypeScript para todas as tabelas e funções do banco de dados.
+ * Ele garante que o código saiba exatamente quais colunas existem em cada tabela.
+ * 
+ * NOTA: Este arquivo costuma ser gerado automaticamente pela CLI do Supabase.
+ */
+
 export type Json =
   | string
   | number
@@ -224,6 +232,39 @@ export type Database = {
           social_impact?: string | null
           target_audience?: string | null
           title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      site_settings: {
+        Row: {
+          address: string | null
+          contact_email: string | null
+          created_at: string
+          facebook_url: string | null
+          id: string
+          instagram_url: string | null
+          phone: string | null
+          updated_at: string
+        }
+        Insert: {
+          address?: string | null
+          contact_email?: string | null
+          created_at?: string
+          facebook_url?: string | null
+          id: string
+          instagram_url?: string | null
+          phone?: string | null
+          updated_at?: string
+        }
+        Update: {
+          address?: string | null
+          contact_email?: string | null
+          created_at?: string
+          facebook_url?: string | null
+          id?: string
+          instagram_url?: string | null
+          phone?: string | null
           updated_at?: string
         }
         Relationships: []

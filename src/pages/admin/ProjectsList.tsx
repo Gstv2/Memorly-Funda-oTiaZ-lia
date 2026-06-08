@@ -6,6 +6,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { Plus, Edit, Trash2, Eye, Loader2 } from 'lucide-react';
+import { deleteFileFromStorage } from '@/lib/storage-utils';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -26,6 +27,7 @@ interface Project {
   category: string | null;
   is_active: boolean | null;
   cover_image: string | null;
+  gallery_images: string[] | null;
   created_at: string;
 }
 
@@ -57,8 +59,20 @@ const ProjectsList = () => {
     fetchProjects();
   }, []);
 
-  const handleDelete = async (id: string) => {
-    const { error } = await supabase.from('projects').delete().eq('id', id);
+  const handleDelete = async (project: Project) => {
+    // Deletar imagem de capa
+    if (project.cover_image) {
+      await deleteFileFromStorage(project.cover_image);
+    }
+
+    // Deletar imagens da galeria do projeto
+    if (project.gallery_images && project.gallery_images.length > 0) {
+      for (const imageUrl of project.gallery_images) {
+        await deleteFileFromStorage(imageUrl);
+      }
+    }
+
+    const { error } = await supabase.from('projects').delete().eq('id', project.id);
 
     if (error) {
       toast({
@@ -160,7 +174,7 @@ const ProjectsList = () => {
                       </AlertDialogHeader>
                       <AlertDialogFooter>
                         <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                        <AlertDialogAction onClick={() => handleDelete(project.id)}>
+                        <AlertDialogAction onClick={() => handleDelete(project)}>
                           Excluir
                         </AlertDialogAction>
                       </AlertDialogFooter>

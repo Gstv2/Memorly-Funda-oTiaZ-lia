@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -7,6 +7,15 @@ import { Label } from "@/components/ui/label";
 import { MapPin, Phone, Mail, Facebook, Instagram, Send, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import SEO from "@/components/SEO";
+
+interface SiteSettings {
+  address: string;
+  phone: string;
+  contact_email: string;
+  facebook_url: string;
+  instagram_url: string;
+}
 
 const Contato = () => {
   const [formData, setFormData] = useState({
@@ -15,6 +24,26 @@ const Contato = () => {
     message: "",
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [settings, setSettings] = useState<SiteSettings | null>(null);
+
+  useEffect(() => {
+    fetchSettings();
+  }, []);
+
+  const fetchSettings = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('site_settings')
+        .select('*')
+        .eq('id', 'config')
+        .single();
+
+      if (error) throw error;
+      if (data) setSettings(data);
+    } catch (error) {
+      console.error("Error fetching settings:", error);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -35,25 +64,28 @@ const Contato = () => {
     setIsSubmitting(true);
 
     try {
-      const { data, error } = await supabase.functions.invoke('send-contact-email', {
-        body: {
-          name: formData.name.trim(),
-          email: formData.email.trim(),
-          message: formData.message.trim(),
-        },
-      });
-
-      if (error) throw error;
-
-      if (data?.success) {
-        toast.success("Mensagem enviada com sucesso! Entraremos em contato em breve.");
-        setFormData({ name: "", email: "", message: "" });
-      } else {
-        throw new Error(data?.error || "Erro ao enviar mensagem");
+      if (!settings?.phone) {
+        throw new Error("Telefone da fundação não configurado.");
       }
-    } catch (error) {
-      console.error("Error sending message:", error);
-      toast.error("Erro ao enviar mensagem. Tente novamente mais tarde.");
+
+      // Limpar o número de telefone (remover tudo que não é número)
+      const cleanPhone = settings.phone.replace(/\D/g, '');
+      
+      // Formatar a mensagem para o WhatsApp
+      const text = `Olá! Meu nome é ${formData.name.trim()}.\nE-mail: ${formData.email.trim()}\nMensagem: ${formData.message.trim()}`;
+      const encodedText = encodeURIComponent(text);
+      
+      // Criar o link do WhatsApp
+      const whatsappUrl = `https://wa.me/${cleanPhone}?text=${encodedText}`;
+      
+      // Abrir em uma nova aba
+      window.open(whatsappUrl, '_blank');
+      
+      toast.success("Redirecionando para o WhatsApp...");
+      setFormData({ name: "", email: "", message: "" });
+    } catch (error: any) {
+      console.error("Error redirecting to WhatsApp:", error);
+      toast.error(error.message || "Erro ao redirecionar. Verifique se o telefone está cadastrado.");
     } finally {
       setIsSubmitting(false);
     }
@@ -70,25 +102,29 @@ const Contato = () => {
     {
       icon: MapPin,
       title: "Endereço",
-      content: "Rua Pires Rebelo, 373, Piripiri, PI, Brasil",
+      content: settings?.address || "Carregando...",
       color: "text-primary",
     },
     {
       icon: Phone,
       title: "Telefone",
-      content: "(86) 9940-3966",
+      content: settings?.phone || "Carregando...",
       color: "text-accent",
     },
     {
       icon: Mail,
       title: "E-mail",
-      content: "francimary.melo@bol.com.br",
+      content: settings?.contact_email || "Carregando...",
       color: "text-secondary",
     },
   ];
 
   return (
     <div className="min-h-screen">
+      <SEO 
+        title="Contato" 
+        description="Fale com a Fundação Tia Zélia. Tire suas dúvidas, seja um voluntário ou faça uma doação."
+      />
       {/* Header */}
       <section className="py-20 bg-gradient-subtle">
         <div className="container mx-auto px-4">
@@ -220,7 +256,7 @@ const Contato = () => {
               </p>
               <div className="flex justify-center space-x-4">
                 <a
-                  href="https://www.facebook.com/fundacaotiazelia/"
+                  href={settings?.facebook_url || "#"}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="w-14 h-14 rounded-full bg-primary hover:bg-primary/90 text-primary-foreground transition-all flex items-center justify-center hover:scale-110 shadow-warm"
@@ -229,7 +265,7 @@ const Contato = () => {
                   <Facebook size={24} />
                 </a>
                 <a
-                  href="https://www.instagram.com/ftz.pi/"
+                  href={settings?.instagram_url || "#"}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="w-14 h-14 rounded-full bg-foreground hover:bg-foreground/90 text-background transition-all flex items-center justify-center hover:scale-110"

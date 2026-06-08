@@ -13,6 +13,7 @@ import {
   Menu,
   X,
   Shield,
+  Settings,
 } from 'lucide-react';
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
@@ -27,6 +28,8 @@ const menuItems = [
   { href: '/admin/galeria', icon: Image, label: 'Galeria' },
   { href: '/admin/projetos', icon: FolderOpen, label: 'Projetos' },
   { href: '/admin/voluntarios', icon: Users, label: 'Voluntários' },
+  { href: '/admin/usuarios', icon: Shield, label: 'Usuários' },
+  { href: '/admin/configuracoes', icon: Settings, label: 'Configurações' },
 ];
 
 const AdminLayout = ({ children }: AdminLayoutProps) => {

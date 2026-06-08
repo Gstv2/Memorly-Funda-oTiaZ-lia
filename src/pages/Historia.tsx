@@ -3,6 +3,7 @@ import { Card } from "@/components/ui/card";
 import { Calendar, Award, Users, Heart, Mail, User } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
+import SEO from "@/components/SEO";
 
 interface Volunteer {
   id: string;
@@ -82,6 +83,10 @@ const Historia = () => {
 
   return (
     <div className="min-h-screen">
+      <SEO 
+        title="Nossa História" 
+        description="Conheça a trajetória da Fundação Tia Zélia e seu compromisso com a comunidade de Piripiri."
+      />
       {/* Header */}
       <section className="py-20 bg-gradient-subtle">
         <div className="container mx-auto px-4">

@@ -2,7 +2,10 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import BlogCard from "@/components/BlogCard";
-import { Loader2 } from "lucide-react";
+import { Search } from "lucide-react";
+import SEO from "@/components/SEO";
+import { Input } from "@/components/ui/input";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface BlogPost {
   id: string;
@@ -18,11 +21,22 @@ interface BlogPost {
 
 const Blog = () => {
   const [posts, setPosts] = useState<BlogPost[]>([]);
+  const [filteredPosts, setFilteredPosts] = useState<BlogPost[]>([]);
+  const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     fetchPosts();
   }, []);
+
+  useEffect(() => {
+    const query = searchQuery.toLowerCase();
+    const filtered = posts.filter(post => 
+      post.title.toLowerCase().includes(query) || 
+      (post.excerpt && post.excerpt.toLowerCase().includes(query))
+    );
+    setFilteredPosts(filtered);
+  }, [searchQuery, posts]);
 
   const fetchPosts = async () => {
     const { data, error } = await supabase
@@ -33,6 +47,7 @@ const Blog = () => {
 
     if (!error && data) {
       setPosts(data);
+      setFilteredPosts(data);
     }
     setLoading(false);
   };
@@ -46,11 +61,15 @@ const Blog = () => {
     });
   };
 
-  const featuredPost = posts[0];
-  const otherPosts = posts.slice(1);
+  const featuredPost = filteredPosts[0];
+  const otherPosts = filteredPosts.slice(1);
 
   return (
     <div className="min-h-screen">
+      <SEO 
+        title="Blog & Notícias" 
+        description="Acompanhe as últimas notícias e eventos da Fundação Tia Zélia."
+      />
       {/* Header */}
       <section className="py-20 bg-gradient-subtle">
         <div className="container mx-auto px-4">
@@ -68,21 +87,50 @@ const Blog = () => {
 
       {loading ? (
         <section className="py-20">
-          <div className="flex justify-center">
-            <Loader2 className="h-8 w-8 animate-spin text-primary" />
-          </div>
-        </section>
-      ) : posts.length === 0 ? (
-        <section className="py-20">
-          <div className="container mx-auto px-4 text-center">
-            <p className="text-xl text-muted-foreground">
-              Nenhuma postagem publicada ainda.
-            </p>
+          <div className="container mx-auto px-4">
+            <div className="space-y-12">
+              <Skeleton className="h-[400px] w-full max-w-5xl mx-auto rounded-2xl" />
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                {[1, 2, 3].map((i) => (
+                  <div key={i} className="space-y-4">
+                    <Skeleton className="h-56 w-full rounded-xl" />
+                    <Skeleton className="h-6 w-3/4" />
+                    <Skeleton className="h-20 w-full" />
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
         </section>
       ) : (
         <>
-          {/* Featured Post */}
+          {/* Search Bar */}
+          <section className="py-8 bg-background border-b border-border">
+            <div className="container mx-auto px-4">
+              <div className="max-w-md mx-auto relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground h-4 w-4" />
+                <Input
+                  type="text"
+                  placeholder="Buscar posts..."
+                  className="pl-10"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+              </div>
+            </div>
+          </section>
+
+          {filteredPosts.length === 0 ? (
+            <section className="py-20">
+              <div className="container mx-auto px-4 text-center">
+                <p className="text-xl text-muted-foreground">
+                  Nenhuma postagem encontrada para sua busca.
+                </p>
+              </div>
+            </section>
+          ) : (
+            <>
+              {/* Featured Post */}
           {featuredPost && (
             <section className="py-16">
               <div className="container mx-auto px-4">
@@ -162,7 +210,8 @@ const Blog = () => {
           )}
         </>
       )}
-
+    </>
+  )}
       {/* Newsletter Section */}
       <section className="py-20 bg-foreground">
         <div className="container mx-auto px-4">

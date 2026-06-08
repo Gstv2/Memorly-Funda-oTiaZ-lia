@@ -4,6 +4,10 @@ import { Card } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2, Download, X } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import SEO from "@/components/SEO";
+import { getOptimizedImageUrl } from "@/lib/storage-utils";
+import { Skeleton } from "@/components/ui/skeleton";
+
 interface GalleryImage {
   id: string;
   title: string;
@@ -74,6 +78,10 @@ const Galeria = () => {
     geral: 'Geral'
   };
   return <div className="min-h-screen">
+      <SEO 
+        title="Galeria de Momentos" 
+        description="Veja as fotos dos eventos e projetos realizados pela Fundação Tia Zélia."
+      />
       {/* Header */}
       <section className="py-20 bg-gradient-subtle">
         <div className="container mx-auto px-4">
@@ -102,8 +110,10 @@ const Galeria = () => {
       {/* Gallery Grid */}
       <section className="py-20">
         <div className="container mx-auto px-4">
-          {loading ? <div className="flex justify-center py-12">
-              <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          {loading ? <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+              {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
+                <Skeleton key={i} className="aspect-square rounded-xl" />
+              ))}
             </div> : filteredItems.length === 0 ? <div className="text-center py-20">
               <p className="text-xl text-muted-foreground">
                 {images.length === 0 ? "Nenhuma imagem na galeria ainda." : "Nenhuma imagem encontrada para este ano."}
@@ -113,7 +123,11 @@ const Galeria = () => {
             animationDelay: `${index % 9 * 100}ms`
           }} onClick={() => setSelectedImage(item)}>
                   <div className="relative overflow-hidden aspect-video">
-                    <img src={item.image_url} alt={item.title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
+                    <img 
+                      src={getOptimizedImageUrl(item.image_url, { width: 600, height: 400 })} 
+                      alt={item.title} 
+                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" 
+                    />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-6">
                       <h3 className="font-poppins font-bold text-white text-xl mb-2">
                         {item.title}
@@ -160,7 +174,11 @@ const Galeria = () => {
           
           {selectedImage && <div className="flex flex-col">
               <div className="relative flex-1 flex items-center justify-center bg-black/5 p-4">
-                <img src={selectedImage.image_url} alt={selectedImage.title} className="max-w-full max-h-[60vh] object-contain rounded-lg" />
+                <img 
+                  src={getOptimizedImageUrl(selectedImage.image_url, { width: 1200 })} 
+                  alt={selectedImage.title} 
+                  className="max-w-full max-h-[60vh] object-contain rounded-lg" 
+                />
               </div>
               
               <div className="p-4 border-t border-border">

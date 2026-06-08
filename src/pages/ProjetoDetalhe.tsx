@@ -20,6 +20,8 @@ import {
   ChevronRight
 } from "lucide-react";
 import { toast } from "sonner";
+import SEO from "@/components/SEO";
+import ProjectCard from "@/components/ProjectCard";
 
 interface Project {
   id: string;
@@ -60,13 +62,17 @@ const categoryLabels: Record<string, string> = {
 const ProjetoDetalhe = () => {
   const { slug } = useParams<{ slug: string }>();
   const [project, setProject] = useState<Project | null>(null);
+  const [relatedProjects, setRelatedProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState(false);
   const [isShareVisible, setIsShareVisible] = useState(true);
 
   useEffect(() => {
     const fetchProject = async () => {
-      if (!slug) return;
+      if (!slug || slug === "undefined") {
+        setLoading(false);
+        return;
+      }
       
       const { data, error } = await supabase
         .from('projects')
@@ -77,6 +83,20 @@ const ProjetoDetalhe = () => {
 
       if (!error && data) {
         setProject(data);
+
+        // Fetch related projects (same category, latest 3 excluding current)
+        const { data: relatedData } = await supabase
+          .from('projects')
+          .select('*')
+          .eq('is_active', true)
+          .eq('category', data.category)
+          .neq('id', data.id)
+          .order('created_at', { ascending: false })
+          .limit(3);
+        
+        if (relatedData) {
+          setRelatedProjects(relatedData);
+        }
       }
       setLoading(false);
     };
@@ -141,6 +161,12 @@ const ProjetoDetalhe = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <SEO 
+        title={project.title}
+        description={project.description || project.impact_phrase || "Conheça este projeto da Fundação Tia Zélia."}
+        image={project.cover_image || undefined}
+        type="article"
+      />
       {/* Floating Share Buttons */}
       <div 
         className={`fixed right-4 top-1/2 -translate-y-1/2 z-50 flex flex-col gap-2 transition-all duration-300 ${
@@ -462,6 +488,31 @@ const ProjetoDetalhe = () => {
           </div>
         </div>
       </section>
+
+      {/* Related Projects */}
+      {relatedProjects.length > 0 && (
+        <section className="py-20 bg-gradient-subtle">
+          <div className="container mx-auto px-4">
+            <div className="max-w-5xl mx-auto">
+              <h2 className="font-poppins font-bold text-3xl text-foreground mb-12 text-center">
+                Outros Projetos {categoryLabels[project.category || 'social']}
+              </h2>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                {relatedProjects.map((relatedProject) => (
+                  <ProjectCard
+                    key={relatedProject.id}
+                    title={relatedProject.title}
+                    description={relatedProject.description}
+                    image={relatedProject.cover_image || ""}
+                    category={(relatedProject.category || "social") as "social"}
+                    slug={relatedProject.slug}
+                  />
+                ))}
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
     </div>
   );
 };

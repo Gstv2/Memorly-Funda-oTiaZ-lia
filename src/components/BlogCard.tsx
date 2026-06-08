@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Calendar, FileText } from "lucide-react";
+import { getOptimizedImageUrl } from "@/lib/storage-utils";
 
 interface BlogCardProps {
   title: string;
@@ -17,7 +18,7 @@ const BlogCard = ({ title, excerpt, date, image, slug }: BlogCardProps) => {
         <div className="relative overflow-hidden h-56">
           {image ? (
             <img
-              src={image}
+              src={getOptimizedImageUrl(image, { width: 600, height: 400 })}
               alt={title}
               className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
             />

@@ -6,6 +6,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { Plus, Edit, Trash2, Eye, Loader2 } from 'lucide-react';
+import { deleteFileFromStorage } from '@/lib/storage-utils';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -56,7 +57,12 @@ const PostsList = () => {
     fetchPosts();
   }, []);
 
-  const handleDelete = async (id: string) => {
+  const handleDelete = async (id: string, coverImage: string | null) => {
+    // Se houver imagem de capa, deletar do storage
+    if (coverImage) {
+      await deleteFileFromStorage(coverImage);
+    }
+
     const { error } = await supabase.from('blog_posts').delete().eq('id', id);
 
     if (error) {
@@ -152,7 +158,7 @@ const PostsList = () => {
                       </AlertDialogHeader>
                       <AlertDialogFooter>
                         <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                        <AlertDialogAction onClick={() => handleDelete(post.id)}>
+                        <AlertDialogAction onClick={() => handleDelete(post.id, post.cover_image)}>
                           Excluir
                         </AlertDialogAction>
                       </AlertDialogFooter>

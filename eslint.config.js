@@ -1,3 +1,7 @@
+/**
+ * Configuração do ESLint para TypeScri garantir a qualidade e padronização do códigopt/React.
+ * Fundação Tia Zélia
+ */
 import js from "@eslint/js";
 import globals from "globals";
 import reactHooks from "eslint-plugin-react-hooks";

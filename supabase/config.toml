@@ -1,1 +1,3 @@
-project_id = "dvomcyjjjobfpfmkfygq"
+# ID do Projeto no Supabase Cloud. 
+# Este ID vincula este repositório local ao projeto remoto da Fundação Tia Zélia.
+project_id = "jmupbpzvyodtctemzggf"
