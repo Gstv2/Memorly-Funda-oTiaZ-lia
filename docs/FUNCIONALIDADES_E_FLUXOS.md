@@ -62,15 +62,13 @@ O site da Fundação Tia Zélia é uma aplicação web institucional desenvolvid
 **Arquivo**: `src/pages/Home.tsx`
 
 **Funcionalidades**:
-- Banner hero com missão da fundação
+- Banner hero dinâmico (configurável no Admin)
+- Estatísticas automáticas (Contagem de voluntários e projetos ativos)
+- Contador manual de vidas transformadas (configurável no Admin)
+- Texto de missão dinâmico
 - Cards de eventos/notícias/projetos em destaque
 - Posts recentes do blog
 - Chamadas para ação (CTA)
-
-**Componentes utilizados**:
-- Navbar
-- Footer
-- Cards de destaque
 
 ---
 
@@ -78,8 +76,9 @@ O site da Fundação Tia Zélia é uma aplicação web institucional desenvolvid
 **Arquivo**: `src/pages/Historia.tsx`
 
 **Funcionalidades**:
-- Apresentação da história da fundação
-- Linha do tempo interativa com marcos históricos
+- Apresentação da história da fundação com imagem dinâmica
+- Blocos dinâmicos de Missão, Visão e Valores
+- Linha do tempo dinâmica carregada do banco de dados
 - Informações sobre a fundadora (Tia Zélia)
 
 ---
@@ -295,6 +294,20 @@ O site da Fundação Tia Zélia é uma aplicação web institucional desenvolvid
 
 ---
 
+### 4.7 Configurações Globais (/admin/configuracoes)
+**Arquivo**: `src/pages/admin/Settings.tsx`
+
+**Funcionalidades**:
+- Gerenciamento centralizado de dados institucionais através de abas.
+- **Aba Geral**: Endereço, telefone, e-mail e redes sociais.
+- **Aba Institucional**: Edição de Missão, Visão e Valores.
+- **Aba Páginas**: Upload de imagens Hero (Home e História) e contador de vidas.
+- **Aba Linha do Tempo**: Gerenciador (CRUD) de eventos históricos.
+
+**Tabelas**: `site_settings`, `timeline_events`
+
+---
+
 ## 5. Autenticação e Autorização
 
 ### 5.1 Hook de Autenticação
@@ -419,19 +432,62 @@ O site da Fundação Tia Zélia é uma aplicação web institucional desenvolvid
 - updated_at: TIMESTAMP
 ```
 
+#### site_settings
+```
+- id: TEXT (PK, default 'config')
+- address: TEXT
+- phone: TEXT
+- contact_email: TEXT
+- facebook_url: TEXT
+- instagram_url: TEXT
+- mission: TEXT (Missão institucional)
+- vision: TEXT (Visão institucional)
+- values: TEXT (Valores institucionais)
+- history_image: TEXT (URL da imagem da página História)
+- home_hero_image: TEXT (URL da imagem hero da Home)
+- home_mission_text: TEXT (Texto de missão da Home)
+- manual_stats_lives_transformed: TEXT (Contador manual de vidas)
+- updated_at: TIMESTAMP
+```
+
+#### timeline_events
+```
+- id: UUID (PK)
+- year: TEXT
+- title: TEXT
+- description: TEXT
+- icon: TEXT (Heart, Users, Award, Calendar)
+- created_at: TIMESTAMP
+- updated_at: TIMESTAMP
+```
+
 ### 6.2 Políticas RLS (Row Level Security)
 
 Todas as tabelas possuem RLS habilitado:
 
 **Leitura pública**: 
-- `projects`, `gallery_images`, `volunteers`, `profiles`
+- `projects`, `gallery_images`, `volunteers`, `profiles`, `site_settings`, `timeline_events`
 - `blog_posts` (apenas published = true)
 
 **Leitura admin**:
 - Todos os `blog_posts` (incluindo rascunhos)
 
 **Escrita (INSERT, UPDATE, DELETE)**:
-- Apenas usuários com role = 'admin'
+- Apenas usuários com role = 'admin' (verificado via função `has_role`)
+
+### 6.3 Storage (Armazenamento)
+
+O sistema utiliza o Supabase Storage para gerenciar arquivos de mídia:
+
+- **Bucket `media`**: 
+  - Armazena imagens de posts, projetos, galeria e configurações.
+  - Estrutura de pastas: `/blog`, `/projects`, `/gallery`, `/settings`, `/volunteers`.
+  - Acesso: Leitura pública, escrita apenas para Admins.
+
+- **Bucket `avatars`**:
+  - Armazena fotos de perfil dos usuários.
+  - Estrutura: `{user_id}/nome-da-imagem.jpg`.
+  - Acesso: Leitura pública, usuário pode gerenciar apenas sua própria pasta.
 
 ---
 
@@ -777,5 +833,34 @@ USUÁRIO                      PROTECTED ROUTE              useAuth HOOK
 
 ---
 
-*Documento gerado em: Fevereiro 2026*
-*Versão: 1.0*
+## 12. Padrões de Desenvolvimento
+
+Para manter a consistência do projeto, siga estes padrões:
+
+### 12.1 Componentes de UI
+- Utilize os componentes do **shadcn/ui** localizados em `src/components/ui`.
+- Não modifique os componentes base; se precisar de uma variação, utilize as props do `class-variance-authority` (cva).
+
+### 12.2 Consumo de Dados
+- Utilize o **TanStack Query (useQuery/useMutation)** para todas as chamadas ao Supabase.
+- Evite `useEffect` para carregar dados sempre que possível.
+- Centralize as queries no componente de página ou crie hooks customizados se a lógica for complexa.
+
+### 12.3 Estilização
+- Utilize apenas **Tailwind CSS**.
+- Siga as cores definidas no `tailwind.config.ts` (primary, secondary, accent, warm).
+- Utilize o utilitário `cn()` para concatenação condicional de classes.
+
+### 12.4 Tipagem
+- Não utilize `any`.
+- Utilize os tipos gerados automaticamente em `src/integrations/supabase/types.ts`.
+- Se criar interfaces manuais, mantenha-as no topo do arquivo do componente ou em um arquivo `.types.ts` separado.
+
+### 12.5 Formulários
+- Utilize **React Hook Form** integrado com **Zod** para validação.
+- Padronize as mensagens de erro utilizando os componentes de UI do shadcn.
+
+---
+
+*Documento atualizado em: Junho 2026*
+*Versão: 1.1 (Atualizado com Configurações Globais e Timeline)*

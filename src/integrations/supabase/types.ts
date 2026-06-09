@@ -246,6 +246,13 @@ export type Database = {
           instagram_url: string | null
           phone: string | null
           updated_at: string
+          mission: string | null
+          vision: string | null
+          values: string | null
+          history_image: string | null
+          home_hero_image: string | null
+          home_mission_text: string | null
+          manual_stats_lives_transformed: string | null
         }
         Insert: {
           address?: string | null
@@ -256,6 +263,13 @@ export type Database = {
           instagram_url?: string | null
           phone?: string | null
           updated_at?: string
+          mission?: string | null
+          vision?: string | null
+          values?: string | null
+          history_image?: string | null
+          home_hero_image?: string | null
+          home_mission_text?: string | null
+          manual_stats_lives_transformed?: string | null
         }
         Update: {
           address?: string | null
@@ -265,6 +279,43 @@ export type Database = {
           id?: string
           instagram_url?: string | null
           phone?: string | null
+          updated_at?: string
+          mission?: string | null
+          vision?: string | null
+          values?: string | null
+          history_image?: string | null
+          home_hero_image?: string | null
+          home_mission_text?: string | null
+          manual_stats_lives_transformed?: string | null
+        }
+        Relationships: []
+      }
+      timeline_events: {
+        Row: {
+          id: string
+          year: string
+          title: string
+          description: string
+          icon: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          year: string
+          title: string
+          description: string
+          icon?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          year?: string
+          title?: string
+          description?: string
+          icon?: string | null
+          created_at?: string
           updated_at?: string
         }
         Relationships: []

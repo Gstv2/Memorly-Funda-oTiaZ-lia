@@ -11,6 +11,33 @@ import { ptBR } from "date-fns/locale";
 import SEO from "@/components/SEO";
 
 const Home = () => {
+  const { data: settings } = useQuery({
+    queryKey: ['site-settings'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('site_settings')
+        .select('*')
+        .eq('id', 'config')
+        .single();
+      if (error) throw error;
+      return data;
+    }
+  });
+
+  const { data: counts } = useQuery({
+    queryKey: ['site-counts'],
+    queryFn: async () => {
+      const [projectsRes, volunteersRes] = await Promise.all([
+        supabase.from('projects').select('id', { count: 'exact', head: true }).eq('is_active', true),
+        supabase.from('volunteers').select('id', { count: 'exact', head: true }).eq('is_active', true),
+      ]);
+      return {
+        projects: projectsRes.count || 0,
+        volunteers: volunteersRes.count || 0,
+      };
+    }
+  });
+
   const { data: projects, isLoading: loadingProjects } = useQuery({
     queryKey: ['featured-projects'],
     queryFn: async () => {
@@ -42,9 +69,9 @@ const Home = () => {
   });
 
   const stats = [
-    { icon: Heart, label: "Vidas Transformadas", value: "5.000+" },
-    { icon: Users, label: "Voluntários Ativos", value: "150+" },
-    { icon: Award, label: "Projetos Realizados", value: "50+" },
+    { icon: Heart, label: "Vidas Transformadas", value: settings?.manual_stats_lives_transformed || "5.000+" },
+    { icon: Users, label: "Voluntários Ativos", value: counts?.volunteers.toString() || "0" },
+    { icon: Award, label: "Projetos Realizados", value: counts?.projects.toString() || "0" },
   ];
 
   const formatDate = (dateString: string | null) => {
@@ -62,7 +89,7 @@ const Home = () => {
       <section className="relative h-[600px] flex items-center justify-center overflow-hidden">
         <div className="absolute inset-0 z-0">
           <img
-            src={heroImage}
+            src={settings?.home_hero_image || heroImage}
             alt="Comunidade Fundação Tia Zélia"
             className="w-full h-full object-cover"
           />
@@ -128,9 +155,7 @@ const Home = () => {
               Nossa Missão
             </h2>
             <p className="text-lg text-muted-foreground leading-relaxed mb-8">
-              A Fundação Tia Zélia é uma instituição sem fins lucrativos comprometida em promover a inclusão social, 
-              preservar a cultura brasileira e desenvolver cidadãos através do esporte e da educação. Acreditamos 
-              que cada vida transformada é uma vitória para toda a comunidade.
+              {settings?.home_mission_text || "A Fundação Tia Zélia é uma instituição sem fins lucrativos comprometida em promover a inclusão social, preservar a cultura brasileira e desenvolver cidadãos através do esporte e da educação. Acreditamos que cada vida transformada é uma vitória para toda a comunidade."}
             </p>
             <Link to="/historia">
               <Button variant="outline" size="lg" className="font-semibold">

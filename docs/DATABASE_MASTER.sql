@@ -1,29 +1,24 @@
 /*
   ================================================================================
-  DATABASE_MASTER.sql - SCRIPT COMPLETO PARA FUNDAÇÃO TIA ZÉLIA
+  DATABASE_MASTER.sql - SCRIPT MASTER UNIFICADO (FUNDAÇÃO TIA ZÉLIA)
   ================================================================================
-  Este script contém toda a estrutura do banco de dados necessária para rodar
-  a aplicação do zero ou migrar para um novo projeto Supabase.
-
-  CONTEÚDO:
-  - Tipos (Enums): Define cargos (admin/user).
-  - Tabelas: Profiles, Roles, Blog, Projetos, Voluntários, Galeria e Configurações.
-  - Funções: Lógica de segurança (has_role) e automação (handle_new_user).
-  - Triggers: Atualização automática de datas (updated_at) e criação de perfis.
-  - RLS (Row Level Security): Políticas de acesso por nível de usuário.
-  - Storage: Buckets 'media' e 'avatars' com suas respectivas permissões.
+  Este script unifica a base original com as migrações mais recentes de 
+  configurações dinâmicas e linha do tempo histórica.
   ================================================================================
 */
 
--- 1. TIPOS E ENUMS
--- Define as funções permitidas no sistema (Admin tem acesso total, User é o padrão)
+-- ==========================================
+-- 1. TIPOS, ENUMS E ESTRUTURAS BÁSICAS
+-- ==========================================
 DO $$ BEGIN
     CREATE TYPE public.app_role AS ENUM ('admin', 'user');
 EXCEPTION
     WHEN duplicate_object THEN null;
 END $$;
 
--- 2. TABELAS
+-- ==========================================
+-- 2. CRIAÇÃO DE TABELAS REVISADAS
+-- ==========================================
 
 -- user_roles: Vincula um usuário do Auth a um cargo (role)
 CREATE TABLE IF NOT EXISTS public.user_roles (
@@ -34,7 +29,7 @@ CREATE TABLE IF NOT EXISTS public.user_roles (
     UNIQUE (user_id, role)
 );
 
--- profiles: Dados complementares do usuário (nome, foto) sincronizados com o Auth
+-- profiles: Dados complementares do usuário sincronizados com o Auth
 CREATE TABLE IF NOT EXISTS public.profiles (
     id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
     email TEXT,
@@ -42,6 +37,25 @@ CREATE TABLE IF NOT EXISTS public.profiles (
     avatar_url TEXT,
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
     updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now()
+);
+
+-- site_settings: Informações globais (Endereço, Redes, Missão e Estatísticas)
+CREATE TABLE IF NOT EXISTS public.site_settings (
+    id TEXT PRIMARY KEY DEFAULT 'config',
+    address TEXT DEFAULT 'Rua Pires Rebelo, 373, Piripiri, PI, Brasil',
+    phone TEXT DEFAULT '(86) 9940-3966',
+    contact_email TEXT DEFAULT 'francimary.melo@bol.com.br',
+    facebook_url TEXT DEFAULT 'https://www.facebook.com/fundacaotiazelia/?locale=pt_BR',
+    instagram_url TEXT DEFAULT 'https://www.instagram.com/ftz.pi/',
+    mission TEXT DEFAULT 'Promover a inclusão social e o desenvolvimento integral de crianças, jovens e adultos através da cultura, educação e esporte.',
+    vision TEXT DEFAULT 'Ser referência em transformação social, reconhecida pela excelência de nossos projetos e pelo impacto positivo na comunidade.',
+    values TEXT DEFAULT 'Solidariedade, respeito, compromisso social, valorização da cultura brasileira e desenvolvimento da cidadania.',
+    history_image TEXT,
+    home_hero_image TEXT,
+    home_mission_text TEXT DEFAULT 'A Fundação Tia Zélia é uma instituição sem fins lucrativos comprometida em promover a inclusão social, preservar a cultura brasileira e desenvolver cidadãos através do esporte e da educação. Acreditamos que cada vida transformada é uma vitória para toda a comunidade.',
+    manual_stats_lives_transformed TEXT DEFAULT '5.000+',
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
+    CONSTRAINT only_one_row CHECK (id = 'config')
 );
 
 -- blog_posts: Notícias, Eventos e Atividades da fundação
@@ -117,24 +131,22 @@ CREATE TABLE IF NOT EXISTS public.gallery_images (
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now()
 );
 
--- site_settings: Informações globais (Endereço, Tel, Redes Sociais) controladas pelo Admin
-CREATE TABLE IF NOT EXISTS public.site_settings (
-    id TEXT PRIMARY KEY DEFAULT 'config',
-    address TEXT DEFAULT 'Rua Pires Rebelo, 373, Piripiri, PI, Brasil',
-    phone TEXT DEFAULT '(86) 9940-3966',
-    contact_email TEXT DEFAULT 'francimary.melo@bol.com.br',
-    facebook_url TEXT DEFAULT 'https://www.facebook.com/fundacaotiazelia/?locale=pt_BR',
-    instagram_url TEXT DEFAULT 'https://www.instagram.com/ftz.pi/',
-    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
-    CONSTRAINT only_one_row CHECK (id = 'config')
+-- timeline_events: Linha do tempo e conquistas históricas
+CREATE TABLE IF NOT EXISTS public.timeline_events (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    year TEXT NOT NULL,
+    title TEXT NOT NULL,
+    description TEXT NOT NULL,
+    icon TEXT DEFAULT 'Heart',
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now()
 );
 
--- Inserir configuração padrão inicial (ID fixo como 'config')
-INSERT INTO public.site_settings (id) VALUES ('config') ON CONFLICT (id) DO NOTHING;
+-- ==========================================
+-- 3. FUNÇÕES DE SEGURANÇA E INFRAESTRUTURA
+-- ==========================================
 
--- 3. FUNÇÕES E SEGURANÇA (SECURITY DEFINER)
-
--- has_role: Verifica se um usuário possui determinado cargo (usado em políticas RLS)
+-- has_role: Verifica se um usuário possui determinado cargo
 CREATE OR REPLACE FUNCTION public.has_role(_user_id UUID, _role public.app_role)
 RETURNS BOOLEAN
 LANGUAGE sql
@@ -150,11 +162,12 @@ AS $$
   )
 $$;
 
--- handle_new_user: Cria automaticamente um perfil na tabela 'profiles' quando um novo usuário se cadastra
+-- handle_new_user: Cria o perfil atrelado logo após a inscrição no Supabase Auth
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS TRIGGER
 LANGUAGE plpgsql
-SECURITY DEFINER SET search_path = public
+SECURITY DEFINER 
+SET search_path = public
 AS $$
 BEGIN
   INSERT INTO public.profiles (id, email, full_name)
@@ -163,7 +176,7 @@ BEGIN
 END;
 $$;
 
--- update_updated_at_column: Atualiza o campo 'updated_at' sempre que uma linha é alterada
+-- update_updated_at_column: Modificador dinâmico de datas de alteração
 CREATE OR REPLACE FUNCTION public.update_updated_at_column()
 RETURNS TRIGGER AS $$
 BEGIN
@@ -172,15 +185,17 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SET search_path = public;
 
--- 4. TRIGGERS
+-- ==========================================
+-- 4. MAPEAMENTO DE TRIGGERS
+-- ==========================================
 
--- Trigger para disparar criação de perfil após cadastro no Supabase Auth
+-- Trigger de Registro de Usuário
 DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
 CREATE TRIGGER on_auth_user_created
   AFTER INSERT ON auth.users
   FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
 
--- Triggers para atualização automática de timestamps em diversas tabelas
+-- Triggers de Modificação de Conteúdo
 DROP TRIGGER IF EXISTS update_profiles_updated_at ON public.profiles;
 CREATE TRIGGER update_profiles_updated_at BEFORE UPDATE ON public.profiles FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
 
@@ -196,8 +211,12 @@ CREATE TRIGGER update_volunteers_updated_at BEFORE UPDATE ON public.volunteers F
 DROP TRIGGER IF EXISTS update_site_settings_updated_at ON public.site_settings;
 CREATE TRIGGER update_site_settings_updated_at BEFORE UPDATE ON public.site_settings FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
 
--- 5. ROW LEVEL SECURITY (RLS)
--- Ativa a segurança por linha para garantir que usuários só acessem o que têm permissão
+DROP TRIGGER IF EXISTS update_timeline_events_updated_at ON public.timeline_events;
+CREATE TRIGGER update_timeline_events_updated_at BEFORE UPDATE ON public.timeline_events FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
+
+-- ==========================================
+-- 5. ROW LEVEL SECURITY (RLS) & POLÍTICAS
+-- ==========================================
 
 ALTER TABLE public.user_roles ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
@@ -206,55 +225,82 @@ ALTER TABLE public.projects ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.volunteers ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.gallery_images ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.site_settings ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.timeline_events ENABLE ROW LEVEL SECURITY;
 
--- Políticas: user_roles (Visualizar próprio cargo / Admin gerencia tudo)
+-- Políticas: user_roles (Resolvido erro de Recursão Infinita)
 CREATE POLICY "Users can view their own roles" ON public.user_roles FOR SELECT USING (auth.uid() = user_id);
-CREATE POLICY "Admins can manage all roles" ON public.user_roles FOR ALL USING (public.has_role(auth.uid(), 'admin'));
+CREATE POLICY "Admins can manage all roles" ON public.user_roles FOR ALL USING (
+  (SELECT current_setting('request.jwt.claims', true)::jsonb ->> 'role') = 'service_role' 
+  OR public.has_role(auth.uid(), 'admin')
+);
 
--- Políticas: profiles (Público vê perfis / Usuário edita apenas o seu)
+-- Políticas: profiles
 CREATE POLICY "Profiles are viewable by everyone" ON public.profiles FOR SELECT USING (true);
 CREATE POLICY "Users can update their own profile" ON public.profiles FOR UPDATE USING (auth.uid() = id);
-CREATE POLICY "Users can insert their own profile" ON public.profiles FOR INSERT WITH CHECK (auth.uid() = id);
+CREATE POLICY "System or user can insert profile" ON public.profiles FOR INSERT WITH CHECK (true);
 
--- Políticas: blog_posts (Público vê publicados / Admin gerencia tudo)
+-- Políticas: blog_posts
 CREATE POLICY "Published posts are viewable by everyone" ON public.blog_posts FOR SELECT USING (published = true);
 CREATE POLICY "Admins can view all posts" ON public.blog_posts FOR SELECT USING (public.has_role(auth.uid(), 'admin'));
 CREATE POLICY "Admins can manage posts" ON public.blog_posts FOR ALL USING (public.has_role(auth.uid(), 'admin'));
 
--- Políticas: projects (Público vê todos / Admin gerencia tudo)
+-- Políticas: projects
 CREATE POLICY "Projects are viewable by everyone" ON public.projects FOR SELECT USING (true);
 CREATE POLICY "Admins can manage projects" ON public.projects FOR ALL USING (public.has_role(auth.uid(), 'admin'));
 
--- Políticas: volunteers (Público vê todos / Admin gerencia tudo)
+-- Políticas: volunteers
 CREATE POLICY "Volunteers are viewable by everyone" ON public.volunteers FOR SELECT USING (true);
 CREATE POLICY "Admins can manage volunteers" ON public.volunteers FOR ALL USING (public.has_role(auth.uid(), 'admin'));
 
--- Políticas: gallery_images (Público vê todos / Admin gerencia tudo)
+-- Políticas: gallery_images
 CREATE POLICY "Gallery images are viewable by everyone" ON public.gallery_images FOR SELECT USING (true);
 CREATE POLICY "Admins can manage gallery" ON public.gallery_images FOR ALL USING (public.has_role(auth.uid(), 'admin'));
 
--- Políticas: site_settings (Público vê todos / Admin gerencia tudo)
+-- Políticas: site_settings
 CREATE POLICY "Settings are viewable by everyone" ON public.site_settings FOR SELECT USING (true);
 CREATE POLICY "Admins can manage settings" ON public.site_settings FOR ALL USING (public.has_role(auth.uid(), 'admin'));
 
--- 6. STORAGE (BUCKETS E POLÍTICAS)
+-- Políticas: timeline_events
+CREATE POLICY "Timeline events are viewable by everyone" ON public.timeline_events FOR SELECT USING (true);
+CREATE POLICY "Admins can manage timeline events" ON public.timeline_events FOR ALL USING (public.has_role(auth.uid(), 'admin'));
 
--- Criar buckets para armazenamento de imagens (Media para blog/galeria, Avatars para usuários)
+-- ==========================================
+-- 6. STORAGE (BUCKETS E REGRAS)
+-- ==========================================
+
 INSERT INTO storage.buckets (id, name, public) 
 VALUES ('media', 'media', true), ('avatars', 'avatars', true)
 ON CONFLICT (id) DO NOTHING;
 
--- Políticas de Storage: Bucket Media (Público vê / Admin gerencia)
+-- Políticas de Armazenamento: Bucket Media
 CREATE POLICY "Media public access" ON storage.objects FOR SELECT USING (bucket_id = 'media');
 CREATE POLICY "Admins manage media" ON storage.objects FOR ALL USING (bucket_id = 'media' AND public.has_role(auth.uid(), 'admin'));
 
--- Políticas de Storage: Bucket Avatars (Público vê / Usuário gerencia sua pasta / Admin total)
+-- Políticas de Armazenamento: Bucket Avatars
 CREATE POLICY "Avatars public access" ON storage.objects FOR SELECT USING (bucket_id = 'avatars');
 CREATE POLICY "Users manage own avatars" ON storage.objects FOR ALL USING (bucket_id = 'avatars' AND auth.uid()::text = (storage.foldername(name))[1]);
 CREATE POLICY "Admins manage all avatars" ON storage.objects FOR ALL USING (bucket_id = 'avatars' AND public.has_role(auth.uid(), 'admin'));
 
--- 7. DADOS INICIAIS (OPCIONAL)
--- Exemplos de voluntários iniciais para popular o site
+-- ==========================================
+-- 7. POPULAÇÃO INICIAL DE DADOS
+-- ==========================================
+
+-- Configuração Base Unificada
+INSERT INTO public.site_settings (id) VALUES ('config') ON CONFLICT (id) DO NOTHING;
+
+-- Voluntários sementes
 INSERT INTO public.volunteers (name, role, is_active) VALUES
 ('Beatriz Lima', 'Voluntária', true),
-('Pedro Costa', 'Coordenador', true);
+('Pedro Costa', 'Coordenador', true)
+ON CONFLICT DO NOTHING;
+
+-- Linha do Tempo Histórica
+INSERT INTO public.timeline_events (year, title, description, icon) VALUES
+('2010', 'Fundação da Instituição', 'A Fundação Tia Zélia nasce do sonho de transformar vidas através da cultura e educação.', 'Heart'),
+('2012', 'Primeira Roda de Capoeira', 'Início das atividades de capoeira, que se tornaria um dos projetos mais importantes da fundação.', 'Users'),
+('2015', 'Reconhecimento Municipal', 'Fundação recebe reconhecimento oficial pelos serviços prestados à comunidade.', 'Award'),
+('2018', 'Expansão dos Projetos', 'Ampliação das atividades com novas oficinas educativas e culturais.', 'Users'),
+('2020', 'Adaptação à Pandemia', 'Implementação de atividades online e apoio emergencial às famílias durante a pandemia.', 'Heart'),
+('2023', 'Nova Sede', 'Inauguração de nova sede com estrutura ampliada para atender mais pessoas.', 'Award'),
+('2024', '5.000 Vidas Transformadas', 'Marco histórico: mais de 5 mil pessoas já foram beneficiadas pelos projetos da fundação.', 'Heart')
+ON CONFLICT DO NOTHING;

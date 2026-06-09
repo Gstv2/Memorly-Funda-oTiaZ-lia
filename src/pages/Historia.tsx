@@ -13,73 +13,55 @@ interface Volunteer {
   contact: string | null;
   is_active: boolean;
 }
+interface SiteSettings {
+  history_image?: string;
+  mission?: string;
+  vision?: string;
+  values?: string;
+}
+
+interface TimelineEvent {
+  id: string;
+  year: string;
+  title: string;
+  description: string;
+  icon: string;
+}
 
 const sedeImageUrl = supabase.storage.from('media').getPublicUrl('corporate/sede-ftz.jpg').data.publicUrl;
 
 const Historia = () => {
   const [volunteers, setVolunteers] = useState<Volunteer[]>([]);
   const [loading, setLoading] = useState(true);
+  const [settings, setSettings] = useState<SiteSettings | null>(null);
+  const [timelineEvents, setTimelineEvents] = useState<TimelineEvent[]>([]);
 
   useEffect(() => {
-    const fetchVolunteers = async () => {
-      const { data, error } = await supabase
-        .from('volunteers')
-        .select('*')
-        .order('is_active', { ascending: false })
-        .order('name');
+    const fetchData = async () => {
+      const [volunteersRes, settingsRes, timelineRes] = await Promise.all([
+        supabase.from('volunteers').select('*').order('is_active', { ascending: false }).order('name'),
+        supabase.from('site_settings').select('*').eq('id', 'config').single(),
+        supabase.from('timeline_events').select('*').order('year', { ascending: true })
+      ]);
       
-      if (!error && data) {
-        setVolunteers(data);
-      }
+      if (volunteersRes.data) setVolunteers(volunteersRes.data);
+      if (settingsRes.data) setSettings(settingsRes.data);
+      if (timelineRes.data) setTimelineEvents(timelineRes.data);
       setLoading(false);
     };
 
-    fetchVolunteers();
+    fetchData();
   }, []);
-  const timeline = [
-    {
-      year: "2010",
-      title: "Fundação da Instituição",
-      description: "A Fundação Tia Zélia nasce do sonho de transformar vidas através da cultura e educação.",
-      icon: Heart,
-    },
-    {
-      year: "2012",
-      title: "Primeira Roda de Capoeira",
-      description: "Início das atividades de capoeira, que se tornaria um dos projetos mais importantes da fundação.",
-      icon: Users,
-    },
-    {
-      year: "2015",
-      title: "Reconhecimento Municipal",
-      description: "Fundação recebe reconhecimento oficial pelos serviços prestados à comunidade.",
-      icon: Award,
-    },
-    {
-      year: "2018",
-      title: "Expansão dos Projetos",
-      description: "Ampliação das atividades com novas oficinas educativas e culturais.",
-      icon: Users,
-    },
-    {
-      year: "2020",
-      title: "Adaptação à Pandemia",
-      description: "Implementação de atividades online e apoio emergencial às famílias durante a pandemia.",
-      icon: Heart,
-    },
-    {
-      year: "2023",
-      title: "Nova Sede",
-      description: "Inauguração de nova sede com estrutura ampliada para atender mais pessoas.",
-      icon: Award,
-    },
-    {
-      year: "2024",
-      title: "5.000 Vidas Transformadas",
-      description: "Marco histórico: mais de 5 mil pessoas já foram beneficiadas pelos projetos da fundação.",
-      icon: Heart,
-    },
-  ];
+
+  const getIcon = (iconName: string) => {
+    switch (iconName) {
+      case 'Heart': return Heart;
+      case 'Users': return Users;
+      case 'Award': return Award;
+      case 'Calendar': return Calendar;
+      default: return Heart;
+    }
+  };
 
   return (
     <div className="min-h-screen">
@@ -108,7 +90,7 @@ const Historia = () => {
           <div className="max-w-5xl mx-auto">
             <div className="relative rounded-2xl overflow-hidden shadow-2xl animate-scale-in">
               <img
-                src={sedeImageUrl}
+                src={settings?.history_image || sedeImageUrl}
                 alt="Sede da Fundação Tia Zélia"
                 className="w-full h-[400px] md:h-[500px] object-cover"
               />
@@ -137,8 +119,7 @@ const Historia = () => {
               </div>
               <h3 className="font-poppins font-bold text-2xl mb-4 text-foreground">Missão</h3>
               <p className="text-muted-foreground leading-relaxed">
-                Promover a inclusão social e o desenvolvimento integral de crianças, jovens e adultos 
-                através da cultura, educação e esporte.
+                {settings?.mission || "Promover a inclusão social e o desenvolvimento integral de crianças, jovens e adultos através da cultura, educação e esporte."}
               </p>
             </Card>
 
@@ -148,8 +129,7 @@ const Historia = () => {
               </div>
               <h3 className="font-poppins font-bold text-2xl mb-4 text-foreground">Visão</h3>
               <p className="text-muted-foreground leading-relaxed">
-                Ser referência em transformação social, reconhecida pela excelência de nossos projetos 
-                e pelo impacto positivo na comunidade.
+                {settings?.vision || "Ser referência em transformação social, reconhecida pela excelência de nossos projetos e pelo impacto positivo na comunidade."}
               </p>
             </Card>
 
@@ -159,8 +139,7 @@ const Historia = () => {
               </div>
               <h3 className="font-poppins font-bold text-2xl mb-4 text-foreground">Valores</h3>
               <p className="text-muted-foreground leading-relaxed">
-                Solidariedade, respeito, compromisso social, valorização da cultura brasileira 
-                e desenvolvimento da cidadania.
+                {settings?.values || "Solidariedade, respeito, compromisso social, valorização da cultura brasileira e desenvolvimento da cidadania."}
               </p>
             </Card>
           </div>
@@ -181,35 +160,38 @@ const Historia = () => {
             </div>
 
             <div className="space-y-8">
-              {timeline.map((item, index) => (
-                <div
-                  key={index}
-                  className="flex gap-6 group animate-fade-in"
-                  style={{ animationDelay: `${index * 100}ms` }}
-                >
-                  {/* Year indicator */}
-                  <div className="flex flex-col items-center">
-                    <div className="w-16 h-16 rounded-full bg-primary flex items-center justify-center text-primary-foreground font-bold shadow-warm group-hover:scale-110 transition-transform">
-                      <item.icon size={24} />
+              {timelineEvents.map((item, index) => {
+                const Icon = getIcon(item.icon);
+                return (
+                  <div
+                    key={item.id || index}
+                    className="flex gap-6 group animate-fade-in"
+                    style={{ animationDelay: `${index * 100}ms` }}
+                  >
+                    {/* Year indicator */}
+                    <div className="flex flex-col items-center">
+                      <div className="w-16 h-16 rounded-full bg-primary flex items-center justify-center text-primary-foreground font-bold shadow-warm group-hover:scale-110 transition-transform">
+                        <Icon size={24} />
+                      </div>
+                      <div className="w-0.5 bg-border flex-grow mt-4 hidden md:block" />
                     </div>
-                    <div className="w-0.5 bg-border flex-grow mt-4 hidden md:block" />
-                  </div>
 
-                  {/* Content */}
-                  <Card className="flex-grow p-6 mb-8 hover:shadow-lg transition-all duration-300 border-border/50">
-                    <div className="flex items-center gap-3 mb-3">
-                      <Calendar size={18} className="text-primary" />
-                      <span className="font-bold text-primary text-lg">{item.year}</span>
-                    </div>
-                    <h3 className="font-poppins font-bold text-xl text-foreground mb-2">
-                      {item.title}
-                    </h3>
-                    <p className="text-muted-foreground leading-relaxed">
-                      {item.description}
-                    </p>
-                  </Card>
-                </div>
-              ))}
+                    {/* Content */}
+                    <Card className="flex-grow p-6 mb-8 hover:shadow-lg transition-all duration-300 border-border/50">
+                      <div className="flex items-center gap-3 mb-3">
+                        <Calendar size={18} className="text-primary" />
+                        <span className="font-bold text-primary text-lg">{item.year}</span>
+                      </div>
+                      <h3 className="font-poppins font-bold text-xl text-foreground mb-2">
+                        {item.title}
+                      </h3>
+                      <p className="text-muted-foreground leading-relaxed">
+                        {item.description}
+                      </p>
+                    </Card>
+                  </div>
+                );
+              })}
             </div>
           </div>
         </div>
