@@ -42,6 +42,11 @@ Este é o repositório do portal institucional da Fundação Tia Zélia, uma apl
 npm run dev
 ```
 
+### Mantendo o Supabase Ativo
+Para evitar que o banco de dados gratuito do Supabase entre em modo hibernação, configuramos um **Cron Job no Vercel**:
+- O arquivo `vercel.json` define uma tarefa que acessa `/api/health` a cada 6 horas
+- A função Edge em `api/health.ts` faz uma consulta leve ao banco de dados para manter a conexão ativa
+
 ---
 
 ## 📂 Estrutura do Projeto

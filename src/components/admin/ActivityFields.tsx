@@ -1,9 +1,12 @@
+// Componente com campos específicos para atividades/aulas
+// Inclui horários, dias da semana, idade e vagas
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
+// Interface para as propriedades do componente
 interface ActivityFieldsProps {
   scheduleTimes: string;
   setScheduleTimes: (value: string) => void;
@@ -19,6 +22,7 @@ interface ActivityFieldsProps {
   setHowToRegister: (value: string) => void;
 }
 
+// Lista de dias da semana
 const WEEKDAYS = [
   { id: 'segunda', label: 'Segunda' },
   { id: 'terca', label: 'Terça' },
@@ -43,6 +47,7 @@ const ActivityFields = ({
   howToRegister,
   setHowToRegister,
 }: ActivityFieldsProps) => {
+  // Função para marcar/desmarcar um dia da semana
   const toggleWeekday = (dayId: string) => {
     if (weekdays.includes(dayId)) {
       setWeekdays(weekdays.filter((d) => d !== dayId));
@@ -57,6 +62,7 @@ const ActivityFields = ({
         <CardTitle className="font-poppins">Informações da Atividade</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
+        {/* Campo para horários */}
         <div className="space-y-2">
           <Label htmlFor="scheduleTimes">Horários</Label>
           <Input
@@ -70,6 +76,7 @@ const ActivityFields = ({
           </p>
         </div>
 
+        {/* Seletor de dias da semana */}
         <div className="space-y-2">
           <Label>Dias da Semana</Label>
           <div className="flex flex-wrap gap-3">
@@ -91,6 +98,7 @@ const ActivityFields = ({
           </div>
         </div>
 
+        {/* Campos de idade mínima e máxima */}
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2">
             <Label htmlFor="minAge">Idade Mínima</Label>
@@ -121,6 +129,7 @@ const ActivityFields = ({
           </div>
         </div>
 
+        {/* Campo para vagas disponíveis */}
         <div className="space-y-2">
           <Label htmlFor="availableSpots">Vagas Disponíveis</Label>
           <Input
@@ -136,6 +145,7 @@ const ActivityFields = ({
           </p>
         </div>
 
+        {/* Campo para instruções de inscrição */}
         <div className="space-y-2">
           <Label htmlFor="howToRegister">Como se Inscrever</Label>
           <Textarea

@@ -1,3 +1,5 @@
+// Editor de conteúdo estruturado para posts
+// Organiza o texto em seções colapsáveis com campos específicos por tipo de post
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -9,6 +11,7 @@ import {
 import { ChevronDown } from 'lucide-react';
 import { useState } from 'react';
 
+// Interface para o conteúdo estruturado
 export interface StructuredContent {
   introduction: string;
   about: string;
@@ -17,6 +20,7 @@ export interface StructuredContent {
   additionalInfo: string;
 }
 
+// Interface para as propriedades do componente
 interface StructuredContentEditorProps {
   value: StructuredContent;
   onChange: (content: StructuredContent) => void;
@@ -28,6 +32,7 @@ const StructuredContentEditor = ({
   onChange,
   postType,
 }: StructuredContentEditorProps) => {
+  // Estado para controlar quais seções estão abertas
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({
     introduction: true,
     about: true,
@@ -36,6 +41,7 @@ const StructuredContentEditor = ({
     additionalInfo: false,
   });
 
+  // Função para expandir/retrair uma seção
   const toggleSection = (section: string) => {
     setOpenSections((prev) => ({
       ...prev,
@@ -43,6 +49,7 @@ const StructuredContentEditor = ({
     }));
   };
 
+  // Função para atualizar um campo específico do conteúdo
   const updateField = (field: keyof StructuredContent, newValue: string) => {
     onChange({
       ...value,
@@ -50,6 +57,7 @@ const StructuredContentEditor = ({
     });
   };
 
+  // Lista de seções do editor
   const sections = [
     {
       id: 'introduction',
@@ -101,6 +109,7 @@ const StructuredContentEditor = ({
     },
   ];
 
+  // Filtra as seções visíveis com base no tipo de post
   const visibleSections = sections.filter(
     (section) => !section.hideFor?.includes(postType)
   );

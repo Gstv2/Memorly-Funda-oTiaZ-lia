@@ -72,13 +72,13 @@ const Projetos = () => {
         description="Conheça os projetos sociais, culturais e educativos da Fundação Tia Zélia."
       />
       {/* Header */}
-      <section className="py-20 bg-gradient-subtle">
+      <section className="py-16 md:py-20 bg-gradient-subtle">
         <div className="container mx-auto px-4">
           <div className="max-w-4xl mx-auto text-center animate-fade-in-up">
-            <h1 className="font-poppins font-bold text-5xl md:text-6xl text-foreground mb-6">
+            <h1 className="font-poppins font-bold text-3xl sm:text-4xl md:text-5xl lg:text-6xl text-foreground mb-6">
               Nossos Projetos
             </h1>
-            <p className="text-xl text-muted-foreground leading-relaxed">
+            <p className="text-base sm:text-lg md:text-xl text-muted-foreground leading-relaxed">
               Conheça as iniciativas que transformam vidas e fortalecem nossa comunidade através da 
               educação, cultura e esporte.
             </p>
@@ -87,15 +87,15 @@ const Projetos = () => {
       </section>
 
       {/* Filters & Search */}
-      <section className="py-12 bg-background border-b border-border">
-        <div className="container mx-auto px-4 space-y-8">
-          <div className="flex flex-wrap justify-center gap-3">
+      <section className="py-10 md:py-12 bg-background border-b border-border">
+        <div className="container mx-auto px-4 space-y-6 md:space-y-8">
+          <div className="flex flex-wrap justify-center gap-2 md:gap-3">
             {filters.map((filter) => (
               <Button
                 key={filter.value}
                 onClick={() => setActiveFilter(filter.value)}
                 variant={activeFilter === filter.value ? "default" : "outline"}
-                size="lg"
+                size="sm"
                 className={`font-semibold transition-all ${
                   activeFilter === filter.value
                     ? "bg-primary text-primary-foreground shadow-warm"
@@ -121,26 +121,26 @@ const Projetos = () => {
       </section>
 
       {/* Projects Grid */}
-      <section className="py-20">
+      <section className="py-16 md:py-20">
         <div className="container mx-auto px-4">
           {loading ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
               {[1, 2, 3, 4, 5, 6].map((i) => (
                 <div key={i} className="space-y-4">
-                  <Skeleton className="h-48 w-full rounded-xl" />
+                  <Skeleton className="h-40 sm:h-48 w-full rounded-xl" />
                   <Skeleton className="h-6 w-3/4" />
-                  <Skeleton className="h-20 w-full" />
+                  <Skeleton className="h-16 sm:h-20 w-full" />
                 </div>
               ))}
             </div>
           ) : filteredProjects.length === 0 ? (
             <div className="text-center py-12">
-              <p className="text-xl text-muted-foreground">
+              <p className="text-base sm:text-lg md:text-xl text-muted-foreground">
                 Nenhum projeto encontrado para esta busca ou categoria.
               </p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
               {filteredProjects.map((project) => (
                 <ProjectCard 
                   key={project.id} 
@@ -157,12 +157,12 @@ const Projetos = () => {
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 bg-foreground">
+      <section className="py-16 md:py-20 bg-foreground">
         <div className="container mx-auto px-4 text-center">
-          <h2 className="font-poppins font-bold text-4xl mb-6 text-background">
+          <h2 className="font-poppins font-bold text-2xl sm:text-3xl md:text-4xl mb-6 text-background">
             Quer Fazer Parte de um Projeto?
           </h2>
-          <p className="text-xl mb-8 max-w-2xl mx-auto text-background/90">
+          <p className="text-base sm:text-lg md:text-xl mb-8 max-w-2xl mx-auto text-background/90">
             Entre em contato conosco para saber mais sobre como participar ou apoiar nossos projetos.
           </p>
           <Link to="/contato">

@@ -1,8 +1,11 @@
+// Componente de rodapé do site
+// Exibe informações de contato, links rápidos e redes sociais carregados do banco de dados
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Facebook, Instagram, Mail, Phone, MapPin } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
+// Interface para as configurações do site
 interface SiteSettings {
   address: string;
   phone: string;
@@ -12,12 +15,15 @@ interface SiteSettings {
 }
 
 const Footer = () => {
+  // Estado para armazenar as configurações carregadas do Supabase
   const [settings, setSettings] = useState<SiteSettings | null>(null);
 
+  // Carrega as configurações ao montar o componente
   useEffect(() => {
     fetchSettings();
   }, []);
 
+  // Função para buscar as configurações no banco de dados
   const fetchSettings = async () => {
     try {
       const { data, error } = await supabase
@@ -37,7 +43,7 @@ const Footer = () => {
     <footer className="bg-gradient-to-b from-background to-muted/30 border-t border-border">
       <div className="container mx-auto px-4 py-12">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-          {/* Sobre */}
+          {/* Seção Sobre a Fundação */}
           <div className="space-y-4">
             <div className="flex items-center space-x-2">
               <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center font-bold text-primary-foreground">
@@ -76,7 +82,7 @@ const Footer = () => {
             </ul>
           </div>
 
-          {/* Contato */}
+          {/* Informações de Contato */}
           <div>
             <h3 className="font-poppins font-semibold mb-4 text-foreground">Contato</h3>
             <ul className="space-y-3">
@@ -124,6 +130,7 @@ const Footer = () => {
           </div>
         </div>
 
+        {/* Copyright */}
         <div className="mt-12 pt-8 border-t border-border text-center">
           <p className="text-sm text-muted-foreground">
             © {new Date().getFullYear()} Fundação Tia Zélia. Todos os direitos reservados.

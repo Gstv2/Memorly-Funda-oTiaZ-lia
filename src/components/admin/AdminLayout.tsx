@@ -1,3 +1,5 @@
+// Layout principal do painel administrativo
+// Inclui sidebar de navegação, menu mobile e área de conteúdo
 import { ReactNode } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
@@ -18,10 +20,12 @@ import {
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
 
+// Interface para as propriedades do layout
 interface AdminLayoutProps {
   children: ReactNode;
 }
 
+// Lista de itens do menu principal
 const menuItems = [
   { href: '/admin', icon: LayoutDashboard, label: 'Dashboard' },
   { href: '/admin/posts', icon: FileText, label: 'Blog Posts' },
@@ -38,6 +42,7 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
+  // Função para fazer logout e redirecionar para a página inicial
   const handleSignOut = async () => {
     await signOut();
     navigate('/');
@@ -45,7 +50,7 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Mobile header */}
+      {/* Header para mobile */}
       <div className="lg:hidden flex items-center justify-between p-4 border-b bg-card">
         <div className="flex items-center gap-2">
           <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
@@ -53,13 +58,14 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
           </div>
           <span className="font-semibold">Admin</span>
         </div>
+        {/* Botão para abrir/fechar sidebar no mobile */}
         <Button variant="ghost" size="icon" onClick={() => setSidebarOpen(!sidebarOpen)}>
           {sidebarOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
         </Button>
       </div>
 
       <div className="flex">
-        {/* Sidebar */}
+        {/* Sidebar de navegação */}
         <aside
           className={cn(
             'fixed lg:static inset-y-0 left-0 z-50 w-64 bg-card border-r transform transition-transform duration-200 lg:transform-none',
@@ -67,7 +73,7 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
           )}
         >
           <div className="flex flex-col h-full">
-            {/* Logo */}
+            {/* Logo e título (apenas para desktop) */}
             <div className="hidden lg:flex items-center gap-3 p-6 border-b">
               <div className="w-10 h-10 bg-primary rounded-full flex items-center justify-center">
                 <span className="text-lg font-bold text-foreground">FTZ</span>
@@ -78,7 +84,7 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
               </div>
             </div>
 
-            {/* Admin badge */}
+            {/* Badge de administrador */}
             {isAdmin && (
               <div className="mx-4 mt-4 p-2 bg-primary/10 rounded-lg flex items-center gap-2">
                 <Shield className="h-4 w-4 text-primary" />
@@ -86,7 +92,7 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
               </div>
             )}
 
-            {/* Navigation */}
+            {/* Links de navegação */}
             <nav className="flex-1 p-4 space-y-1">
               {menuItems.map((item) => {
                 const isActive = location.pathname === item.href;
@@ -109,8 +115,9 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
               })}
             </nav>
 
-            {/* Footer */}
+            {/* Footer da sidebar */}
             <div className="p-4 border-t space-y-2">
+              {/* Link para ver o site público */}
               <Link
                 to="/"
                 className="flex items-center gap-3 px-3 py-2 rounded-lg text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors"
@@ -118,6 +125,7 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
                 <Home className="h-5 w-5" />
                 <span>Ver Site</span>
               </Link>
+              {/* Botão de logout */}
               <button
                 onClick={handleSignOut}
                 className="flex items-center gap-3 px-3 py-2 rounded-lg text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors w-full"
@@ -125,6 +133,7 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
                 <LogOut className="h-5 w-5" />
                 <span>Sair</span>
               </button>
+              {/* Exibe o e-mail do usuário logado */}
               <div className="pt-2 px-3">
                 <p className="text-xs text-muted-foreground truncate">{user?.email}</p>
               </div>
@@ -132,7 +141,7 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
           </div>
         </aside>
 
-        {/* Overlay */}
+        {/* Overlay para fechar sidebar no mobile */}
         {sidebarOpen && (
           <div
             className="fixed inset-0 bg-black/50 z-40 lg:hidden"
@@ -140,7 +149,7 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
           />
         )}
 
-        {/* Main content */}
+        {/* Área principal de conteúdo do painel */}
         <main className="flex-1 p-6 lg:p-8 min-h-screen">{children}</main>
       </div>
     </div>

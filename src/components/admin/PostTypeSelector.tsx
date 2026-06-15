@@ -1,13 +1,17 @@
+// Componente para selecionar o tipo de post (blog ou atividade)
+// Utilizado nos formulários de criação/edição de posts
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { BookOpen, Calendar, Newspaper, Quote } from 'lucide-react';
 
+// Interface para as propriedades do componente
 interface PostTypeSelectorProps {
   value: string;
   onChange: (value: string) => void;
 }
 
+// Lista de tipos de post disponíveis
 const POST_TYPES = [
   {
     id: 'atividade',

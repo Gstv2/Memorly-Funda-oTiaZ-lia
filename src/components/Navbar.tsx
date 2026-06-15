@@ -1,3 +1,5 @@
+// Componente de navegação principal do site
+// Responsável por exibir o menu, logo e botões de autenticação
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Menu, X, LogIn, LogOut, Settings, User } from "lucide-react";
@@ -6,11 +8,15 @@ import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 
 const Navbar = () => {
+  // Estado para controlar a abertura do menu mobile
   const [isOpen, setIsOpen] = useState(false);
+  // Hook para pegar a rota atual e destacar o item de menu ativo
   const location = useLocation();
+  // Hook de autenticação para verificar usuário e permissões
   const { user, isAdmin, signOut } = useAuth();
   const { toast } = useToast();
 
+  // Função para fazer logout do usuário
   const handleLogout = async () => {
     await signOut();
     toast({
@@ -19,8 +25,10 @@ const Navbar = () => {
     });
   };
 
+  // Função auxiliar para verificar se uma rota é a atual
   const isActive = (path: string) => location.pathname === path;
 
+  // Lista dos links de navegação principal
   const navLinks = [
     { name: "Início", path: "/" },
     { name: "História", path: "/historia" },
@@ -34,7 +42,7 @@ const Navbar = () => {
     <nav className="sticky top-0 z-50 bg-background/95 backdrop-blur-sm border-b border-border shadow-sm">
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
-          {/* Logo */}
+          {/* Logo da Fundação */}
           <Link to="/" className="flex items-center space-x-2 group">
             <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center font-bold text-primary-foreground text-xl transition-transform group-hover:scale-110">
               TZ
@@ -44,7 +52,7 @@ const Navbar = () => {
             </span>
           </Link>
 
-          {/* Desktop Menu */}
+          {/* Menu para Desktop */}
           <div className="hidden md:flex items-center space-x-1">
             {navLinks.map((link) => (
               <Link key={link.path} to={link.path}>
@@ -61,7 +69,7 @@ const Navbar = () => {
               </Link>
             ))}
             
-            {/* Auth Buttons */}
+            {/* Botões de Autenticação no Desktop */}
             {!user ? (
               <Link to="/auth">
                 <Button variant="outline" size="sm" className="ml-2">
@@ -81,6 +89,7 @@ const Navbar = () => {
                     Meu Perfil
                   </Button>
                 </Link>
+                {/* Botão Admin só aparece para administradores */}
                 {isAdmin && (
                   <Link to="/admin">
                     <Button variant="outline" size="sm">
@@ -97,7 +106,7 @@ const Navbar = () => {
             )}
           </div>
 
-          {/* Mobile Menu Button */}
+          {/* Botão do Menu Mobile */}
           <button
             className="md:hidden p-2 rounded-lg hover:bg-muted transition-colors"
             onClick={() => setIsOpen(!isOpen)}
@@ -107,7 +116,7 @@ const Navbar = () => {
           </button>
         </div>
 
-        {/* Mobile Menu */}
+        {/* Menu Dropdown Mobile */}
         {isOpen && (
           <div className="md:hidden py-4 border-t border-border animate-fade-in">
             <div className="flex flex-col space-y-2">
@@ -130,7 +139,7 @@ const Navbar = () => {
                 </Link>
               ))}
               
-              {/* Mobile Auth Buttons */}
+              {/* Botões de Autenticação no Mobile */}
               {!user ? (
                 <Link to="/auth" onClick={() => setIsOpen(false)}>
                   <Button variant="outline" className="w-full justify-start">

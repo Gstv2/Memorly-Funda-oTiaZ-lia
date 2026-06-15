@@ -86,36 +86,36 @@ const Home = () => {
         description="Memorial digital da Fundação Tia Zélia - Transformando vidas através da cultura, esporte e educação em Piripiri, Piauí."
       />
       {/* Hero Section */}
-      <section className="relative h-[600px] flex items-center justify-center overflow-hidden">
+      <section className="relative min-h-[60vh] md:h-[600px] flex items-center justify-center overflow-hidden">
         <div className="absolute inset-0 z-0">
           <img
             src={settings?.home_hero_image || heroImage}
             alt="Comunidade Fundação Tia Zélia"
             className="w-full h-full object-cover"
           />
-          <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/50 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/60 to-black/40 md:bg-gradient-to-r md:from-black/70 md:via-black/50 md:to-transparent" />
         </div>
         
         <div className="container mx-auto px-4 z-10 relative">
           <div className="max-w-2xl animate-fade-in-up">
-            <h1 className="font-poppins font-bold text-5xl md:text-6xl text-white mb-6 leading-tight">
+            <h1 className="font-poppins font-bold text-3xl sm:text-4xl md:text-5xl lg:text-6xl text-white mb-6 leading-tight">
               Transformando Vidas Através da{" "}
               <span className="text-transparent bg-clip-text bg-gradient-warm">
                 Cultura e Educação
               </span>
             </h1>
-            <p className="text-xl text-white/90 mb-8 leading-relaxed">
+            <p className="text-base sm:text-lg md:text-xl text-white/90 mb-8 leading-relaxed">
               Há mais de uma década dedicados a construir um futuro melhor através de projetos sociais, culturais e esportivos que fortalecem nossa comunidade.
             </p>
-            <div className="flex flex-wrap gap-4">
-              <Link to="/projetos">
-                <Button size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold shadow-warm">
+            <div className="flex flex-col sm:flex-row gap-4">
+              <Link to="/projetos" className="w-full sm:w-auto">
+                <Button size="lg" className="w-full sm:w-auto bg-primary hover:bg-primary/90 text-primary-foreground font-semibold shadow-warm">
                   Conheça Nossos Projetos
                   <ArrowRight className="ml-2" size={18} />
                 </Button>
               </Link>
-              <Link to="/contato">
-                <Button size="lg" variant="outline" className="border-white bg-white/10 text-white hover:bg-white hover:text-foreground font-semibold">
+              <Link to="/contato" className="w-full sm:w-auto">
+                <Button size="lg" variant="outline" className="w-full sm:w-auto border-white bg-white/10 text-white hover:bg-white hover:text-foreground font-semibold">
                   Entre em Contato
                 </Button>
               </Link>
@@ -125,22 +125,22 @@ const Home = () => {
       </section>
 
       {/* Stats Section */}
-      <section className="py-16 bg-gradient-subtle">
+      <section className="py-12 md:py-16 bg-gradient-subtle">
         <div className="container mx-auto px-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 md:gap-8">
             {stats.map((stat, index) => (
               <div
                 key={index}
-                className="text-center p-8 rounded-2xl bg-background border border-border hover:shadow-card transition-all duration-300 animate-scale-in"
+                className="text-center p-6 md:p-8 rounded-2xl bg-background border border-border hover:shadow-card transition-all duration-300 animate-scale-in"
                 style={{ animationDelay: `${index * 100}ms` }}
               >
-                <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary text-primary-foreground mb-4">
-                  <stat.icon size={28} />
+                <div className="inline-flex items-center justify-center w-14 h-14 md:w-16 md:h-16 rounded-full bg-primary text-primary-foreground mb-4">
+                  <stat.icon size={24} className="md:w-7 md:h-7" />
                 </div>
-                <h3 className="font-poppins font-bold text-4xl text-foreground mb-2">
+                <h3 className="font-poppins font-bold text-3xl md:text-4xl text-foreground mb-2">
                   {stat.value}
                 </h3>
-                <p className="text-muted-foreground font-medium">{stat.label}</p>
+                <p className="text-sm md:text-base text-muted-foreground font-medium">{stat.label}</p>
               </div>
             ))}
           </div>
@@ -148,13 +148,13 @@ const Home = () => {
       </section>
 
       {/* Mission Section */}
-      <section className="py-20">
+      <section className="py-16 md:py-20">
         <div className="container mx-auto px-4">
           <div className="max-w-3xl mx-auto text-center">
-            <h2 className="font-poppins font-bold text-4xl text-foreground mb-6">
+            <h2 className="font-poppins font-bold text-2xl sm:text-3xl md:text-4xl text-foreground mb-6">
               Nossa Missão
             </h2>
-            <p className="text-lg text-muted-foreground leading-relaxed mb-8">
+            <p className="text-base sm:text-lg text-muted-foreground leading-relaxed mb-8">
               {settings?.home_mission_text || "A Fundação Tia Zélia é uma instituição sem fins lucrativos comprometida em promover a inclusão social, preservar a cultura brasileira e desenvolver cidadãos através do esporte e da educação. Acreditamos que cada vida transformada é uma vitória para toda a comunidade."}
             </p>
             <Link to="/historia">
@@ -168,13 +168,13 @@ const Home = () => {
       </section>
 
       {/* Projects Section */}
-      <section className="py-20 bg-gradient-subtle">
+      <section className="py-16 md:py-20 bg-gradient-subtle">
         <div className="container mx-auto px-4">
-          <div className="text-center mb-12">
-            <h2 className="font-poppins font-bold text-4xl text-foreground mb-4">
+          <div className="text-center mb-10 md:mb-12">
+            <h2 className="font-poppins font-bold text-2xl sm:text-3xl md:text-4xl text-foreground mb-4">
               Projetos em Destaque
             </h2>
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+            <p className="text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto">
               Conheça alguns dos nossos principais projetos que estão transformando vidas em nossa comunidade.
             </p>
           </div>
@@ -184,7 +184,7 @@ const Home = () => {
               <Loader2 className="h-8 w-8 animate-spin text-primary" />
             </div>
           ) : projects && projects.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-10">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8 mb-8 md:mb-10">
               {projects.map((project, index) => (
                 <div key={project.id} className="animate-fade-in" style={{ animationDelay: `${index * 150}ms` }}>
                   <ProjectCard
@@ -213,13 +213,13 @@ const Home = () => {
       </section>
 
       {/* Blog Section */}
-      <section className="py-20">
+      <section className="py-16 md:py-20">
         <div className="container mx-auto px-4">
-          <div className="text-center mb-12">
-            <h2 className="font-poppins font-bold text-4xl text-foreground mb-4">
+          <div className="text-center mb-10 md:mb-12">
+            <h2 className="font-poppins font-bold text-2xl sm:text-3xl md:text-4xl text-foreground mb-4">
               Últimas Notícias
             </h2>
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+            <p className="text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto">
               Fique por dentro das novidades, eventos e conquistas da nossa comunidade.
             </p>
           </div>
@@ -229,7 +229,7 @@ const Home = () => {
               <Loader2 className="h-8 w-8 animate-spin text-primary" />
             </div>
           ) : posts && posts.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-10">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8 mb-8 md:mb-10">
               {posts.map((post, index) => (
                 <div key={post.id} className="animate-fade-in" style={{ animationDelay: `${index * 150}ms` }}>
                   <BlogCard
@@ -258,12 +258,12 @@ const Home = () => {
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 bg-foreground">
+      <section className="py-16 md:py-20 bg-foreground">
         <div className="container mx-auto px-4 text-center">
-          <h2 className="font-poppins font-bold text-4xl mb-6 text-background">
+          <h2 className="font-poppins font-bold text-2xl sm:text-3xl md:text-4xl mb-6 text-background">
             Faça Parte Desta Transformação
           </h2>
-          <p className="text-xl mb-8 max-w-2xl mx-auto text-background/90">
+          <p className="text-base sm:text-lg md:text-xl mb-8 max-w-2xl mx-auto text-background/90">
             Junte-se a nós como voluntário, parceiro ou apoiador. 
             Cada contribuição faz a diferença na vida de centenas de pessoas.
           </p>

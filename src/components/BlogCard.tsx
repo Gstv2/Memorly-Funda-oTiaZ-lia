@@ -1,8 +1,11 @@
+// Componente de cartão para exibir posts do blog na página inicial ou listagem
+// Mostra thumbnail, data, título e resumo do post
 import { Link } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Calendar, FileText } from "lucide-react";
 import { getOptimizedImageUrl } from "@/lib/storage-utils";
 
+// Interface para as propriedades do cartão
 interface BlogCardProps {
   title: string;
   excerpt: string;
@@ -16,6 +19,7 @@ const BlogCard = ({ title, excerpt, date, image, slug }: BlogCardProps) => {
     <Link to={`/blog/${slug}`}>
       <Card className="group overflow-hidden hover:shadow-lg transition-all duration-300 border-border/50 cursor-pointer h-full flex flex-col">
         <div className="relative overflow-hidden h-56">
+          {/* Thumbnail do post, ou placeholder se não houver imagem */}
           {image ? (
             <img
               src={getOptimizedImageUrl(image, { width: 600, height: 400 })}
@@ -27,18 +31,22 @@ const BlogCard = ({ title, excerpt, date, image, slug }: BlogCardProps) => {
               <FileText className="h-12 w-12 text-muted-foreground/50" />
             </div>
           )}
+          {/* Overlay escuro que aparece no hover */}
           <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
         </div>
         <CardHeader>
+          {/* Data do post */}
           <div className="flex items-center space-x-2 text-xs text-muted-foreground mb-2">
             <Calendar size={14} className="text-primary" />
             <span>{date}</span>
           </div>
+          {/* Título do post (limita a 2 linhas) */}
           <CardTitle className="font-poppins text-xl group-hover:text-primary transition-colors line-clamp-2">
             {title}
           </CardTitle>
         </CardHeader>
         <CardContent className="flex-grow">
+          {/* Resumo do post (limita a 3 linhas) */}
           <CardDescription className="text-sm leading-relaxed line-clamp-3">
             {excerpt}
           </CardDescription>
