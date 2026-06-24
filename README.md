@@ -34,7 +34,8 @@ Este é o repositório do portal institucional da Fundação Tia Zélia, uma apl
    Crie um arquivo `.env` na raiz do projeto com:
    ```env
    VITE_SUPABASE_URL=sua_url_do_supabase
-   VITE_SUPABASE_ANON_KEY=sua_chave_anon_do_supabase
+   VITE_SUPABASE_PUBLISHABLE_KEY=sua_chave_anon_do_supabase
+   VITE_SUPABASE_PROJECT_ID=id_supabase
    ```
 
 ### Execução
@@ -90,4 +91,6 @@ Para entender como o usuário final opera o sistema, consulte:
 
 ## Deploy
 
-O projeto está configurado para ser implantado na Vercel ou plataformas similares. Certifique-se de configurar as variáveis de ambiente necessárias (`VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`, etc.) nas configurações da plataforma de deploy.
+O projeto está configurado para ser implantado na Vercel ou plataformas similares. Certifique-se de configurar as variáveis de ambiente necessárias (`VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY`, etc.) nas configurações da plataforma de deploy.
+
+em caso você novo desenvolvedor queira subir na vercel também você conectará o seu github e na parte de configurações irá subir o arquivo .env e não precisa colocar nenhum comando para build e ou output setting.

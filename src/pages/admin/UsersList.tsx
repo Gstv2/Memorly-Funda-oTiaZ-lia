@@ -41,25 +41,61 @@ const UsersList = () => {
   const fetchUsers = async () => {
     try {
       setLoading(true);
-      
-      // Busca total para paginação
-      const { count, error: countError } = await supabase
-        .from('profiles')
-        .select('*', { count: 'exact', head: true });
-      
-      if (countError) throw countError;
-      setTotalCount(count || 0);
+      const isSearching = searchQuery.trim().length > 0;
 
-      // Busca perfis com paginação
-      const { data: profiles, error: profilesError } = await supabase
-        .from('profiles')
-        .select('*')
-        .range((currentPage - 1) * pageSize, currentPage * pageSize - 1);
+      let profilesData: any[] = [];
+      let count = 0;
 
-      if (profilesError) throw profilesError;
+      if (isSearching) {
+        // --- CENÁRIO DE BUSCA: Busca por e-mail ou nome em toda a tabela de perfis ---
+        const { data: profiles, error: profilesError, count: searchCount } = await supabase
+          .from('profiles')
+          .select('*', { count: 'exact' })
+          .ilike('email', `%${searchQuery}%`)
+          .range((currentPage - 1) * pageSize, currentPage * pageSize - 1);
 
-      // Busca roles para esses usuários
-      const userIds = profiles.map(p => p.id);
+        if (profilesError) throw profilesError;
+        profilesData = profiles || [];
+        count = searchCount || 0;
+      } else {
+        // --- CENÁRIO PADRÃO: Buscar apenas quem é Admin ---
+        // Primeiro, descobrimos os IDs que estão na tabela 'user_roles' como 'admin'
+        const { data: adminRoles, error: rolesCountError } = await supabase
+          .from('user_roles')
+          .select('user_id')
+          .eq('role', 'admin');
+
+        if (rolesCountError) throw rolesCountError;
+        
+        const adminIds = adminRoles?.map(r => r.user_id) || [];
+
+        if (adminIds.length === 0) {
+          setUsers([]);
+          setTotalCount(0);
+          return;
+        }
+
+        // Agora buscamos os perfis que pertencem a esses IDs de administradores
+        const { data: profiles, error: profilesError, count: adminCount } = await supabase
+          .from('profiles')
+          .select('*', { count: 'exact' })
+          .in('id', adminIds)
+          .range((currentPage - 1) * pageSize, currentPage * pageSize - 1);
+
+        if (profilesError) throw profilesError;
+        profilesData = profiles || [];
+        count = adminCount || 0;
+      }
+
+      setTotalCount(count);
+
+      if (profilesData.length === 0) {
+        setUsers([]);
+        return;
+      }
+
+      // Busca as roles correspondentes para os perfis renderizados na página atual
+      const userIds = profilesData.map(p => p.id);
       const { data: roles, error: rolesError } = await supabase
         .from('user_roles')
         .select('user_id, role')
@@ -67,10 +103,10 @@ const UsersList = () => {
 
       if (rolesError) throw rolesError;
 
-      // Mapeia perfis com suas roles
-      const usersWithRoles = profiles.map((profile) => ({
+      // Mapeia os perfis acoplando a role (se não achar na tabela, assume 'user')
+      const usersWithRoles = profilesData.map((profile) => ({
         ...profile,
-        role: roles.find((r) => r.user_id === profile.id)?.role as 'admin' | 'user' || 'user',
+        role: roles?.find((r) => r.user_id === profile.id)?.role as 'admin' | 'user' || 'user',
       }));
 
       setUsers(usersWithRoles);
@@ -82,9 +118,11 @@ const UsersList = () => {
     }
   };
 
+  // Recarrega os dados quando muda de página ou quando a pesquisa muda
   useEffect(() => {
+    // Reseta para a primeira página ao iniciar uma nova busca externa
     fetchUsers();
-  }, [currentPage]);
+  }, [currentPage, searchQuery]);
 
   const toggleAdmin = async (userId: string, currentRole: string | undefined) => {
     try {
@@ -92,7 +130,6 @@ const UsersList = () => {
       const newRole = currentRole === 'admin' ? 'user' : 'admin';
 
       if (currentRole === 'admin') {
-        // Remover admin
         const { error } = await supabase
           .from('user_roles')
           .delete()
@@ -101,7 +138,6 @@ const UsersList = () => {
 
         if (error) throw error;
       } else {
-        // Adicionar admin
         const { error } = await supabase
           .from('user_roles')
           .insert({ user_id: userId, role: 'admin' });
@@ -119,14 +155,6 @@ const UsersList = () => {
     }
   };
 
-  const filteredUsers = users.filter((user) => {
-    const searchLower = searchQuery.toLowerCase();
-    return (
-      user.email?.toLowerCase().includes(searchLower) ||
-      user.full_name?.toLowerCase().includes(searchLower)
-    );
-  });
-
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -142,15 +170,18 @@ const UsersList = () => {
         <CardHeader>
           <CardTitle>Lista de Usuários</CardTitle>
           <CardDescription>
-            Apenas usuários promovidos a Administradores podem acessar esta área.
+            Mostrando administradores cadastrados. Use a busca por e-mail para encontrar usuários comuns.
           </CardDescription>
           <div className="relative mt-4">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Buscar por nome ou e-mail..."
+              placeholder="Buscar usuário comum por e-mail..."
               className="pl-10"
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+                setCurrentPage(1); // Sempre reseta a página ao pesquisar
+              }}
             />
           </div>
         </CardHeader>
@@ -171,14 +202,14 @@ const UsersList = () => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filteredUsers.length === 0 ? (
+                  {users.length === 0 ? (
                     <TableRow>
                       <TableCell colSpan={4} className="text-center py-8 text-muted-foreground">
                         Nenhum usuário encontrado.
                       </TableCell>
                     </TableRow>
                   ) : (
-                    filteredUsers.map((user) => (
+                    users.map((user) => (
                       <TableRow key={user.id}>
                         <TableCell className="font-medium">
                           <div className="flex items-center gap-3">
@@ -240,7 +271,7 @@ const UsersList = () => {
           {!loading && totalCount > pageSize && (
             <div className="flex items-center justify-between mt-6">
               <p className="text-sm text-muted-foreground">
-                Mostrando {(currentPage - 1) * pageSize + 1} a {Math.min(currentPage * pageSize, totalCount)} de {totalCount} usuários
+                Mostrando {(currentPage - 1) * pageSize + 1} a {Math.min(currentPage * pageSize, totalCount)} de {totalCount} registros
               </p>
               <div className="flex gap-2">
                 <Button
