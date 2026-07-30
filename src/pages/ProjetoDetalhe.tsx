@@ -246,7 +246,7 @@ const ProjetoDetalhe = () => {
               </p>
 
               {/* Inline Share Buttons */}
-              <div className="flex items-center gap-3 mt-6">
+              <div className="flex items-center gap-2 sm:gap-3 mt-6">
                 <span className="text-white/70 text-sm flex items-center gap-1">
                   <Share2 className="h-4 w-4" />
                   Compartilhar:
@@ -257,17 +257,17 @@ const ProjetoDetalhe = () => {
                   className="text-white hover:bg-white/20 backdrop-blur-sm"
                   onClick={handleShareWhatsApp}
                 >
-                  <MessageCircle className="h-4 w-4 mr-1" />
-                  WhatsApp
+                  <MessageCircle className="h-4 w-4 sm:mr-1" />
+                  <span className="hidden sm:inline ">Whatsapp:</span>
                 </Button>
                 <Button
                   size="sm"
                   variant="ghost"
-                  className="text-white hover:bg-white/20 backdrop-blur-sm"
+                  className="text-white hover:bg-white/20 backdrop-blur-sm px-2.5 sm:px-3"
                   onClick={handleShareFacebook}
                 >
                   <Facebook className="h-4 w-4 mr-1" />
-                  Facebook
+                  <span className="hidden sm:inline">Facebook</span>
                 </Button>
                 <Button
                   size="sm"
@@ -276,7 +276,9 @@ const ProjetoDetalhe = () => {
                   onClick={handleCopyLink}
                 >
                   {copied ? <Check className="h-4 w-4 mr-1" /> : <Copy className="h-4 w-4 mr-1" />}
-                  Copiar Link
+                  <span className="hidden sm:inline">
+                    {copied ? "Copiado!" : "Copiar Link"}
+                  </span>
                 </Button>
               </div>
             </div>

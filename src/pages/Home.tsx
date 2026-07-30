@@ -6,9 +6,19 @@ import { supabase } from "@/integrations/supabase/client";
 import ProjectCard from "@/components/ProjectCard";
 import BlogCard from "@/components/BlogCard";
 import heroImage from "@/assets/hero-community.jpg";
-import { format } from "date-fns";
+import { format, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import SEO from "@/components/SEO";
+
+// Função para tratar caso a imagem seja uma URL completa ou um caminho do Supabase
+const resolveImageUrl = (path: string | null | undefined, fallback: string = ""): string => {
+  if (!path) return fallback;
+  if (path.startsWith("http://") || path.startsWith("https://")) {
+    return path;
+  }
+  // Se for apenas o caminho salvo no bucket 'media'
+  return supabase.storage.from("media").getPublicUrl(path).data.publicUrl;
+};
 
 const Home = () => {
   const { data: settings } = useQuery({
@@ -76,7 +86,11 @@ const Home = () => {
 
   const formatDate = (dateString: string | null) => {
     if (!dateString) return "";
-    return format(new Date(dateString), "d 'de' MMMM, yyyy", { locale: ptBR });
+    try {
+      return format(parseISO(dateString), "d 'de' MMMM, yyyy", { locale: ptBR });
+    } catch {
+      return "";
+    }
   };
 
   return (
@@ -85,11 +99,12 @@ const Home = () => {
         title="Home" 
         description="Memorial digital da Fundação Tia Zélia - Transformando vidas através da cultura, esporte e educação em Piripiri, Piauí."
       />
+
       {/* Hero Section */}
       <section className="relative min-h-[60vh] md:h-[600px] flex items-center justify-center overflow-hidden">
         <div className="absolute inset-0 z-0">
           <img
-            src={settings?.home_hero_image || heroImage}
+            src={resolveImageUrl(settings?.home_hero_image, heroImage)}
             alt="Comunidade Fundação Tia Zélia"
             className="w-full h-full object-cover"
           />
@@ -108,17 +123,17 @@ const Home = () => {
               Há mais de uma década dedicados a construir um futuro melhor através de projetos sociais, culturais e esportivos que fortalecem nossa comunidade.
             </p>
             <div className="flex flex-col sm:flex-row gap-4">
-              <Link to="/projetos" className="w-full sm:w-auto">
-                <Button size="lg" className="w-full sm:w-auto bg-primary hover:bg-primary/90 text-primary-foreground font-semibold shadow-warm">
+              <Button asChild size="lg" className="w-full sm:w-auto bg-primary hover:bg-primary/90 text-primary-foreground font-semibold shadow-warm">
+                <Link to="/projetos">
                   Conheça Nossos Projetos
                   <ArrowRight className="ml-2" size={18} />
-                </Button>
-              </Link>
-              <Link to="/contato" className="w-full sm:w-auto">
-                <Button size="lg" variant="outline" className="w-full sm:w-auto border-white bg-white/10 text-white hover:bg-white hover:text-foreground font-semibold">
+                </Link>
+              </Button>
+              <Button asChild size="lg" variant="outline" className="w-full sm:w-auto border-white bg-white/10 text-white hover:bg-white hover:text-foreground font-semibold">
+                <Link to="/contato">
                   Entre em Contato
-                </Button>
-              </Link>
+                </Link>
+              </Button>
             </div>
           </div>
         </div>
@@ -157,12 +172,12 @@ const Home = () => {
             <p className="text-base sm:text-lg text-muted-foreground leading-relaxed mb-8">
               {settings?.home_mission_text || "A Fundação Tia Zélia é uma instituição sem fins lucrativos comprometida em promover a inclusão social, preservar a cultura brasileira e desenvolver cidadãos através do esporte e da educação. Acreditamos que cada vida transformada é uma vitória para toda a comunidade."}
             </p>
-            <Link to="/historia">
-              <Button variant="outline" size="lg" className="font-semibold">
+            <Button asChild variant="outline" size="lg" className="font-semibold">
+              <Link to="/historia">
                 Conheça Nossa História
                 <ArrowRight className="ml-2" size={18} />
-              </Button>
-            </Link>
+              </Link>
+            </Button>
           </div>
         </div>
       </section>
@@ -190,7 +205,7 @@ const Home = () => {
                   <ProjectCard
                     title={project.title}
                     description={project.description}
-                    image={project.cover_image || ""}
+                    image={resolveImageUrl(project.cover_image)}
                     category={(project.category as "social" | "cultural" | "esportivo") || "social"}
                     slug={project.slug}
                   />
@@ -202,12 +217,12 @@ const Home = () => {
           )}
 
           <div className="text-center">
-            <Link to="/projetos">
-              <Button size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold shadow-warm">
+            <Button asChild size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold shadow-warm">
+              <Link to="/projetos">
                 Ver Todos os Projetos
                 <ArrowRight className="ml-2" size={18} />
-              </Button>
-            </Link>
+              </Link>
+            </Button>
           </div>
         </div>
       </section>
@@ -236,7 +251,7 @@ const Home = () => {
                     title={post.title}
                     excerpt={post.excerpt || ""}
                     date={formatDate(post.published_at)}
-                    image={post.cover_image || ""}
+                    image={resolveImageUrl(post.cover_image)}
                     slug={post.slug}
                   />
                 </div>
@@ -247,12 +262,12 @@ const Home = () => {
           )}
 
           <div className="text-center">
-            <Link to="/blog">
-              <Button size="lg" variant="outline" className="font-semibold">
+            <Button asChild size="lg" variant="outline" className="font-semibold">
+              <Link to="/blog">
                 Ver Todas as Notícias
                 <ArrowRight className="ml-2" size={18} />
-              </Button>
-            </Link>
+              </Link>
+            </Button>
           </div>
         </div>
       </section>
@@ -267,12 +282,12 @@ const Home = () => {
             Junte-se a nós como voluntário, parceiro ou apoiador. 
             Cada contribuição faz a diferença na vida de centenas de pessoas.
           </p>
-          <Link to="/contato">
-            <Button size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold hover:scale-105 transition-transform shadow-warm">
+          <Button asChild size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold hover:scale-105 transition-transform shadow-warm">
+            <Link to="/contato">
               Quero Contribuir
               <Heart className="ml-2" size={18} />
-            </Button>
-          </Link>
+            </Link>
+          </Button>
         </div>
       </section>
     </div>
