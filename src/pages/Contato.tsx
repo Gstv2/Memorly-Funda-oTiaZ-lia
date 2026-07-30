@@ -64,28 +64,43 @@ const Contato = () => {
     setIsSubmitting(true);
 
     try {
-      if (!settings?.phone) {
-        throw new Error("Telefone da fundação não configurado.");
+      // Verifica se existe um número de telefone válido cadastrado
+      const hasPhone = settings?.phone && settings.phone.replace(/\D/g, '').length > 0;
+
+      if (hasPhone) {
+        // 1. REDIRECIONAMENTO PARA WHATSAPP
+        const cleanPhone = settings!.phone.replace(/\D/g, '');
+        const text = `Olá! Meu nome é ${formData.name.trim()}.\nE-mail: ${formData.email.trim()}\nMensagem: ${formData.message.trim()}`;
+        const encodedText = encodeURIComponent(text);
+        
+        const whatsappUrl = `https://wa.me/${cleanPhone}?text=${encodedText}`;
+        window.open(whatsappUrl, '_blank');
+        toast.success("Redirecionando para o WhatsApp...");
+      } else {
+        // 2. REDIRECIONAMENTO DIRETO PARA O GMAIL (WEB)
+        const recipientEmail = settings?.contact_email || "francimary.melo@bol.com.br";
+        const subject = `Contato do Site - ${formData.name.trim()}`;
+        const body = `Olá, equipe da Fundação Tia Zélia!\n\nMeu nome é ${formData.name.trim()} (${formData.email.trim()}).\n\nMensagem:\n${formData.message.trim()}`;
+
+        // URL oficial do Gmail para compor e-mail na web
+        const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(recipientEmail)}&su=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+
+        // Tenta abrir em uma nova aba do Gmail
+        const newTab = window.open(gmailUrl, '_blank');
+
+        // Fallback: se o navegador bloquear o pop-up do Gmail, usa o mailto tradicional
+        if (!newTab || newTab.closed || typeof newTab.closed === 'undefined') {
+          const mailtoUrl = `mailto:${recipientEmail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+          window.location.href = mailtoUrl;
+        }
+
+        toast.success("Redirecionando para o Gmail...");
       }
 
-      // Limpar o número de telefone (remover tudo que não é número)
-      const cleanPhone = settings.phone.replace(/\D/g, '');
-      
-      // Formatar a mensagem para o WhatsApp
-      const text = `Olá! Meu nome é ${formData.name.trim()}.\nE-mail: ${formData.email.trim()}\nMensagem: ${formData.message.trim()}`;
-      const encodedText = encodeURIComponent(text);
-      
-      // Criar o link do WhatsApp
-      const whatsappUrl = `https://wa.me/${cleanPhone}?text=${encodedText}`;
-      
-      // Abrir em uma nova aba
-      window.open(whatsappUrl, '_blank');
-      
-      toast.success("Redirecionando para o WhatsApp...");
       setFormData({ name: "", email: "", message: "" });
     } catch (error: any) {
-      console.error("Error redirecting to WhatsApp:", error);
-      toast.error(error.message || "Erro ao redirecionar. Verifique se o telefone está cadastrado.");
+      console.error("Error sending message:", error);
+      toast.error(error.message || "Erro ao redirecionar mensagem.");
     } finally {
       setIsSubmitting(false);
     }
@@ -98,6 +113,9 @@ const Contato = () => {
     });
   };
 
+  // Checa se o WhatsApp está ativo no cadastro para exibir dinamicamente no card
+  const hasPhone = settings?.phone && settings.phone.replace(/\D/g, '').length > 0;
+
   const contactInfo = [
     {
       icon: MapPin,
@@ -107,8 +125,8 @@ const Contato = () => {
     },
     {
       icon: Phone,
-      title: "Telefone",
-      content: settings?.phone || "Carregando...",
+      title: "Telefone / WhatsApp",
+      content: hasPhone ? settings.phone : "(Atendimento via E-mail)",
       color: "text-accent",
     },
     {
@@ -231,7 +249,7 @@ const Contato = () => {
                       </>
                     ) : (
                       <>
-                        Enviar Mensagem
+                        {hasPhone ? "Enviar via WhatsApp" : "Enviar por E-mail"}
                         <Send className="ml-2" size={18} />
                       </>
                     )}

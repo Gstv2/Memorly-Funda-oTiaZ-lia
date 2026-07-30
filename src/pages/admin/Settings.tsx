@@ -11,10 +11,8 @@ import {
   Loader2, 
   Save, 
   MapPin, 
-  Phone, 
-  Mail, 
+  TriangleAlert,
   Facebook, 
-  Instagram, 
   Target, 
   Eye, 
   Star, 
@@ -23,10 +21,6 @@ import {
   Plus, 
   Trash2, 
   Upload,
-  Heart,
-  Users,
-  Award,
-  Calendar
 } from 'lucide-react';
 
 interface SiteSettings {
@@ -261,8 +255,8 @@ const Settings = () => {
                     <Input id="address" value={settings.address} onChange={handleChange} />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="phone">Telefone / WhatsApp</Label>
-                    <Input id="phone" value={settings.phone} onChange={handleChange} />
+                    <Label htmlFor="phone">Telefone / WhatsApp (caso não tenha deixe em branco)</Label>
+                    <Input id="phone" value={settings.phone?.trim()} onChange={handleChange} />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="contact_email">E-mail de Contato</Label>
@@ -290,6 +284,7 @@ const Settings = () => {
                 </CardContent>
               </Card>
             </div>
+
           </TabsContent>
 
           {/* Aba Institucional: Missão, Visão, Valores */}
