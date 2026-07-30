@@ -88,11 +88,11 @@ const Footer = () => {
             <ul className="space-y-3">
               <li className="flex items-start space-x-2 text-sm text-muted-foreground">
                 <MapPin size={16} className="mt-1 flex-shrink-0 text-primary" />
-                <span>{settings?.address || "Rua Pires Rebelo, 373, Piripiri, PI"}</span>
+                <span>{settings?.address || "Rua Pires Rebelo, 386, Piripiri, PI"}</span>
               </li>
               <li className="flex items-center space-x-2 text-sm text-muted-foreground">
                 <Phone size={16} className="flex-shrink-0 text-primary" />
-                <span>{settings?.phone || "(86) 9940-3966"}</span>
+                <span>{settings?.phone || "Atendimento Via E-mail"}</span>
               </li>
               <li className="flex items-center space-x-2 text-sm text-muted-foreground">
                 <Mail size={16} className="flex-shrink-0 text-primary" />
